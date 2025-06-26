@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShowTime", "ShowTime\ShowTime\ShowTime.csproj", "{04BF1935-49C5-4F91-9628-83D5AC05CFEF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShowTime", "ShowTime\ShowTime\ShowTime.csproj", "{04BF1935-49C5-4F91-9628-83D5AC05CFEF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShowTime.Client", "ShowTime\ShowTime.Client\ShowTime.Client.csproj", "{A24B9FD8-E07E-4310-923A-129248304C31}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShowTime.DataAccess", "ShowTime.DataAccess\ShowTime.DataAccess.csproj", "{236A332D-0BD9-48EA-88FC-E5D94BEC8EB4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{04BF1935-49C5-4F91-9628-83D5AC05CFEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04BF1935-49C5-4F91-9628-83D5AC05CFEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{04BF1935-49C5-4F91-9628-83D5AC05CFEF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A24B9FD8-E07E-4310-923A-129248304C31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A24B9FD8-E07E-4310-923A-129248304C31}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A24B9FD8-E07E-4310-923A-129248304C31}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A24B9FD8-E07E-4310-923A-129248304C31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{236A332D-0BD9-48EA-88FC-E5D94BEC8EB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{236A332D-0BD9-48EA-88FC-E5D94BEC8EB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{236A332D-0BD9-48EA-88FC-E5D94BEC8EB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{236A332D-0BD9-48EA-88FC-E5D94BEC8EB4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
