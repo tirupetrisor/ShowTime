@@ -22,7 +22,7 @@ public class ShowTimeDbContext:DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ShowTimeDbContext).Assembly);
+        base.OnModelCreating(modelBuilder);
 
         new ArtistConfiguration().Configure(modelBuilder.Entity<Artist>());
         new FestivalConfiguration().Configure(modelBuilder.Entity<Festival>());
