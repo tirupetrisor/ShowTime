@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using ShowTime.Components;
 using ShowTime.DataAccess;
+using ShowTime.DataAccess.Models;
+using ShowTime.DataAccess.Repositories.Abstractions;
+using ShowTime.DataAccess.Repositories.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +14,8 @@ builder.Services.AddRazorComponents()
 var connectionString = builder.Configuration.GetConnectionString("ShowTimeContext");
 builder.Services.AddDbContext<ShowTimeContext>(options =>
     options.UseSqlServer(connectionString));
+
+builder.Services.AddTransient<IRepository<Artist>, GenericRepository<Artist>>();
 
 var app = builder.Build();
 
