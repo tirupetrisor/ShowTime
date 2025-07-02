@@ -37,9 +37,38 @@ else
                     <div class="card-body">
                         <h5 class="card-title">@artist.Name</h5>
                         <p class="card-text"><strong>Genre:</strong> @artist.Genre</p>
+                        
+                        @if (editingArtistId == artist.Id)
+                        {
+                            <div class="mt-3">
+                                <h6>Edit Artist</h6>
+                                <EditForm Model="updateArtist" OnValidSubmit="UpdateArtist" FormName="@($"UpdateArtistForm_{artist.Id}")">
+                                    <div class="mb-2">
+                                        <label>Name: </label>
+                                        <InputText @bind-Value="updateArtist.Name" class="form-control form-control-sm"/>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>Genre: </label>
+                                        <InputText @bind-Value="updateArtist.Genre" class="form-control form-control-sm" />
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>Image: </label>
+                                        <InputText @bind-Value="updateArtist.Image" class="form-control form-control-sm" />
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-success btn-sm">Save</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" @onclick="CancelEdit">Cancel</button>
+                                    </div>
+                                </EditForm>
+                            </div>
+                        }
                     </div>
-                    <div>
-                        <button class="btn-danger" @onclick="async () => await DeleteArtist(artist.Id)"></button>
+                    <div class="card-footer d-flex gap-2">
+                        @if (editingArtistId != artist.Id)
+                        {
+                            <button class="btn btn-warning btn-sm" @onclick="() => StartEdit(artist)">Edit</button>
+                        }
+                        <button class="btn btn-danger btn-sm" @onclick="async () => await DeleteArtist(artist.Id)">Delete</button>
                     </div>
                 </div>
             </div>
@@ -51,10 +80,13 @@ else
 
 @code {
     private IList<ArtistGetDto> artists = new List<ArtistGetDto>();
+    private int? editingArtistId = null;
 
     [SupplyParameterFromForm] 
     private ArtistCreateDto newArtist { get; set; } = new();
 
+    private ArtistUpdateDto updateArtist { get; set; } = new();
+    
     protected override async Task OnInitializedAsync()
     {
         artists = await ArtistService.GetAllArtistsAsync();
@@ -64,6 +96,32 @@ else
     {
         await ArtistService.AddArtistAsync(newArtist);
         newArtist = new();
+        artists = await ArtistService.GetAllArtistsAsync();
+    }
+
+    private void StartEdit(ArtistGetDto artist)
+    {
+        editingArtistId = artist.Id;
+        updateArtist = new ArtistUpdateDto
+        {
+            Id = artist.Id,
+            Name = artist.Name,
+            Genre = artist.Genre,
+            Image = artist.Image
+        };
+    }
+
+    private void CancelEdit()
+    {
+        editingArtistId = null;
+        updateArtist = new();
+    }
+
+    private async Task UpdateArtist()
+    {
+        await ArtistService.UpdateArtistAsync(updateArtist);
+        editingArtistId = null;
+        updateArtist = new();
         artists = await ArtistService.GetAllArtistsAsync();
     }
 
