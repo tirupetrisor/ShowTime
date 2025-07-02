@@ -16,10 +16,30 @@ public class ArtistService : IArtistService
 
     public async Task<ArtistGetDto?> GetArtistByIdAsync(int id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var artist = await _artistRepository.GetByIdAsync(id);
+
+            if (artist == null)
+            {
+                throw new KeyNotFoundException($"Artist with ID {id} not found.");
+            }
+
+            return new ArtistGetDto
+            {
+                Id = artist.Id,
+                Name = artist.Name,
+                Image = artist.Image,
+                Genre = artist.Genre
+            };
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"An error occurred while retrieving the artist with ID {id}.", ex);
+        }
     }
 
-    public async Task<IEnumerable<ArtistGetDto>> GetAllArtistsAsync()
+    public async Task<IList<ArtistGetDto>> GetAllArtistsAsync()
     {
         try
         {
@@ -31,7 +51,7 @@ public class ArtistService : IArtistService
                 Name = artist.Name,
                 Image = artist.Image,
                 Genre = artist.Genre
-            });
+            }).ToList();
         }
         catch (Exception ex)
         {
@@ -40,18 +60,51 @@ public class ArtistService : IArtistService
         }
     }
 
-    public async Task AddArtistAsync(Artist artist)
+    public async Task AddArtistAsync(ArtistCreateDto artistCreateDto)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var artist = new Artist
+            {
+                Name = artistCreateDto.Name,
+                Image = artistCreateDto.Image,
+                Genre = artistCreateDto.Genre
+            };
+
+            await _artistRepository.AddAsync(artist);
+        }
+        catch (Exception ex)
+        {
+            // Log the exception (logging mechanism not implemented here)
+            throw new Exception("An error occurred while adding the artist.", ex);
+        }
     }
 
-    public async Task UpdateArtistAsync(Artist artist)
+    public async Task UpdateArtistAsync(int id, ArtistUpdateDto artistUpdateDto)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var artist = await _artistRepository.GetByIdAsync(id);
+
+            if (artist == null)
+            {
+                throw new KeyNotFoundException($"Artist with ID {id} not found.");
+            }
+
+            artist.Name = artistUpdateDto.Name;
+            artist.Image = artistUpdateDto.Image;
+            artist.Genre = artistUpdateDto.Genre;
+
+            await _artistRepository.UpdateAsync(artist);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"An error occurred while updating the artist with ID {id}.", ex);
+        }
     }
 
     public async Task DeleteArtistAsync(int id)
     {
-        throw new NotImplementedException();
+        await _artistRepository.DeleteAsync(id);
     }
 }

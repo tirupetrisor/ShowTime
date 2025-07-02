@@ -1,0 +1,75 @@
+﻿@page "/Artists"
+@using ShowTime.BusinessLogic.Abstractions
+@using ShowTime.BusinessLogic.Dtos
+@inject IArtistService ArtistService
+@rendermode InteractiveServer
+
+
+<h3>Add new artist</h3>
+<EditForm Model="newArtist" OnValidSubmit="AddArtist" FormName="AddArtistForm">
+    <label>Name: </label>
+    <InputText @bind-Value="newArtist.Name" class="form-control"/>
+
+    <label>Genre: </label>
+    <InputText @bind-Value="newArtist.Genre" class="form-control" />
+
+    <label>Image: </label>
+    <InputText @bind-Value="newArtist.Image" class="form-control" />
+
+    <button class="btn btn-primary"> Add Band</button>
+</EditForm>
+
+
+<h3>Artists</h3>
+
+@if (artists.Count == 0)
+{
+    <p>No artists registered!</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var artist in artists)
+        {
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    <img class="card-img-top" src="@artist.Image" alt="@artist.Name" />
+                    <div class="card-body">
+                        <h5 class="card-title">@artist.Name</h5>
+                        <p class="card-text"><strong>Genre:</strong> @artist.Genre</p>
+                    </div>
+                    <div>
+                        <button class="btn-danger" @onclick="async () => await DeleteArtist(artist.Id)"></button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+
+
+@code {
+    private IList<ArtistGetDto> artists = new List<ArtistGetDto>();
+
+    [SupplyParameterFromForm] 
+    private ArtistCreateDto newArtist { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        artists = await ArtistService.GetAllArtistsAsync();
+    }
+
+    private async Task AddArtist()
+    {
+        await ArtistService.AddArtistAsync(newArtist);
+        newArtist = new();
+        artists = await ArtistService.GetAllArtistsAsync();
+    }
+
+    private async Task DeleteArtist(int id)
+    {
+        await ArtistService.DeleteArtistAsync(id);
+        artists = await ArtistService.GetAllArtistsAsync();
+    }
+}

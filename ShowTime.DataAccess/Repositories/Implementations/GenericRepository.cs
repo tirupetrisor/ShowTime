@@ -72,6 +72,7 @@ public class GenericRepository<T> : IRepository<T> where T : class
                 throw new KeyNotFoundException($"Entity with ID {id} not found.");
             }
             _context.Set<T>().Remove(entity);
+            await _context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
