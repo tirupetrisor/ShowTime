@@ -1,0 +1,166 @@
+﻿@page "/Artists"
+@using ShowTime.BusinessLogic.Abstractions
+@using ShowTime.BusinessLogic.Dtos
+@inject IArtistService ArtistService
+@rendermode InteractiveServer
+
+
+
+<div class="page-header">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-0">🎵 Artist Management</h1>
+        <p class="lead">Manage your festival artists with style</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card add-artist-card">
+        <div class="card-body">
+            <h3 class="text-center mb-4">✨ Add New Artist</h3>
+            <EditForm Model="newArtist" OnValidSubmit="AddArtist" FormName="AddArtistForm">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">🎤 Artist Name</label>
+                        <InputText @bind-Value="newArtist.Name" class="form-control form-control-modern" placeholder="Enter artist name"/>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">🎵 Genre</label>
+                        <InputText @bind-Value="newArtist.Genre" class="form-control form-control-modern" placeholder="Enter genre"/>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">🖼️ Image URL</label>
+                        <InputText @bind-Value="newArtist.Image" class="form-control form-control-modern" placeholder="Enter image URL"/>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-add btn-modern">
+                        <i class="fas fa-plus"></i> Add Artist
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    <h2 class="section-title">🌟 Our Artists</h2>
+
+    @if (artists.Count == 0)
+    {
+        <div class="no-artists">
+            <h4>🎭 No artists registered yet!</h4>
+            <p>Start by adding your first artist above</p>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var artist in artists)
+            {
+                <div class="col-lg-4 col-md-6">
+                    <div class="card artist-card">
+                        <img class="artist-image" src="@artist.Image" alt="@artist.Name" />
+                        <div class="artist-info">
+                            <h5 class="artist-name">@artist.Name</h5>
+                            <span class="genre-badge">@artist.Genre</span>
+                            
+                            @if (editingArtistId == artist.Id)
+                            {
+                                <div class="edit-form">
+                                    <h6 class="text-white mb-3">✏️ Edit Artist</h6>
+                                    <EditForm Model="updateArtist" OnValidSubmit="UpdateArtist" FormName="@($"UpdateArtistForm_{artist.Id}")">
+                                        <div class="mb-3">
+                                            <label class="form-label">🎤 Name</label>
+                                            <InputText @bind-Value="updateArtist.Name" class="form-control"/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">🎵 Genre</label>
+                                            <InputText @bind-Value="updateArtist.Genre" class="form-control"/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">🖼️ Image URL</label>
+                                            <InputText @bind-Value="updateArtist.Image" class="form-control"/>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-save">
+                                                <i class="fas fa-check"></i> Save
+                                            </button>
+                                            <button type="button" class="btn btn-cancel" @onclick="CancelEdit">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </button>
+                                        </div>
+                                    </EditForm>
+                                </div>
+                            }
+                        </div>
+                        <div class="action-buttons">
+                            @if (editingArtistId != artist.Id)
+                            {
+                                <button class="btn btn-edit" @onclick="() => StartEdit(artist)">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                            }
+                            <button class="btn btn-delete" @onclick="async () => await DeleteArtist(artist.Id)">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private IList<ArtistGetDto> artists = new List<ArtistGetDto>();
+    private int? editingArtistId = null;
+
+    [SupplyParameterFromForm] 
+    private ArtistCreateDto newArtist { get; set; } = new();
+
+    private ArtistUpdateDto updateArtist { get; set; } = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        artists = await ArtistService.GetAllArtistsAsync();
+    }
+
+    private async Task AddArtist()
+    {
+        await ArtistService.AddArtistAsync(newArtist);
+        newArtist = new();
+
+
+        artists = await ArtistService.GetAllArtistsAsync();
+    }
+
+    private void StartEdit(ArtistGetDto artist)
+    {
+        editingArtistId = artist.Id;
+        updateArtist = new ArtistUpdateDto
+        {
+            Id = artist.Id,
+            Name = artist.Name,
+            Genre = artist.Genre,
+            Image = artist.Image
+        };
+    }
+
+    private void CancelEdit()
+    {
+        editingArtistId = null;
+        updateArtist = new();
+    }
+
+    private async Task UpdateArtist()
+    {
+        await ArtistService.UpdateArtistAsync(updateArtist);
+        editingArtistId = null;
+        updateArtist = new();
+        artists = await ArtistService.GetAllArtistsAsync();
+    }
+
+    private async Task DeleteArtist(int id)
+    {
+        await ArtistService.DeleteArtistAsync(id);
+        artists = await ArtistService.GetAllArtistsAsync();
+    }
+}

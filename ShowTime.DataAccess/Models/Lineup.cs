@@ -16,8 +16,6 @@ public class Lineup
     public string Stage { get; set; } = string.Empty;
 
     public DateTime StartTime { get; set; }
-
-    public Festival Festival { get; set; } = null;
-
-    public Artist Artist { get; set; } = null;
+    public Festival Festival { get; set; } = null!;
+    public Artist Artist { get; set; } = null!;
 }

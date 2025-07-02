@@ -14,4 +14,5 @@ public class User
     public int Role { get; set; }
 
     public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+    public ICollection<Festival> Festivals { get; set; } = new List<Festival>();
 }
