@@ -127,6 +127,8 @@
     {
         await ArtistService.AddArtistAsync(newArtist);
         newArtist = new();
+
+
         artists = await ArtistService.GetAllArtistsAsync();
     }
 
