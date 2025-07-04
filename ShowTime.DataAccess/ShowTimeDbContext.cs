@@ -14,7 +14,7 @@ public class ShowTimeDbContext:DbContext
     public ShowTimeDbContext(DbContextOptions<ShowTimeDbContext> options) : base(options)
     { }
 
-    public DbSet<Festival> Festival { get; set; }
+    public DbSet<Festival> Festivals { get; set; }
     public DbSet<Artist> Artists { get; set; }
     public DbSet<Lineup> Lineups { get; set; }
     public DbSet<User> Users { get; set; }

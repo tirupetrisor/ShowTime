@@ -55,7 +55,6 @@ public class ArtistService : IArtistService
         }
         catch (Exception ex)
         {
-            // Log the exception (logging mechanism not implemented here)
             throw new Exception("An error occurred while retrieving all artists.", ex);
         }
     }
@@ -75,7 +74,6 @@ public class ArtistService : IArtistService
         }
         catch (Exception ex)
         {
-            // Log the exception (logging mechanism not implemented here)
             throw new Exception("An error occurred while adding the artist.", ex);
         }
     }
@@ -105,6 +103,20 @@ public class ArtistService : IArtistService
 
     public async Task DeleteArtistAsync(int id)
     {
-        await _artistRepository.DeleteAsync(id);
+        try
+        {
+            var artist = await _artistRepository.GetByIdAsync(id);
+
+            if (artist == null)
+            {
+                throw new KeyNotFoundException($"Artist with ID {id} not found.");
+            }
+
+            await _artistRepository.DeleteAsync(artist);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"An error occurred while deleting the artist with ID {id}.", ex);
+        }
     }
 }

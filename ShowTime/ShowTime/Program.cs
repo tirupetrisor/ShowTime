@@ -15,11 +15,17 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 var connectionString = builder.Configuration.GetConnectionString("ShowTimeContext");
-builder.Services.AddDbContext<ShowTimeContext>(options =>
+builder.Services.AddDbContext<ShowTimeDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-builder.Services.AddTransient<IRepository<Artist>, GenericRepository<Artist>>();
+builder.Services.AddTransient<IRepository<Artist>, Repository<Artist>>();
 builder.Services.AddTransient<IArtistService, ArtistService>();
+
+builder.Services.AddTransient<IRepository<Festival>, Repository<Festival>>();
+builder.Services.AddTransient<IFestivalService, FestivalService>();
+
+builder.Services.AddTransient<ILineupRepository, LineupRepository>();
+builder.Services.AddTransient<ILineupService, LineupService>();
 
 var app = builder.Build();
 

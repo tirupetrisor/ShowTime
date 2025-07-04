@@ -17,7 +17,7 @@ public class Repository <T> : IRepository<T> where T: class
         Context = context;
     }
 
-    public async Task<T?> GetById(int id)
+    public async Task<T?> GetByIdAsync(int id)
     {
         try
         {
@@ -29,11 +29,11 @@ public class Repository <T> : IRepository<T> where T: class
         }
     }
 
-    public async Task<IEnumerable<T>> GetAll()
+    public async Task<IEnumerable<T>> GetAllAsync()
     {
         try
         {
-            return await Context.Set<T>().ToListAsync();
+            return await Context.Set<T>().AsNoTracking().ToListAsync();
         }
         catch (Exception ex)
         {
@@ -41,7 +41,7 @@ public class Repository <T> : IRepository<T> where T: class
         }
     }
 
-    public async Task Add(T entity)
+    public async Task AddAsync(T entity)
     {
         if (entity == null)
             throw new ArgumentNullException(nameof(entity));
@@ -57,7 +57,7 @@ public class Repository <T> : IRepository<T> where T: class
         }
     }
 
-    public async Task Update(T entity)
+    public async Task UpdateAsync(T entity)
     {
         if (entity == null)
             throw new ArgumentNullException(nameof(entity));
@@ -74,7 +74,7 @@ public class Repository <T> : IRepository<T> where T: class
     }
 
 
-    public async Task Delete(T entity)
+    public async Task DeleteAsync(T entity)
     {
         if (entity == null)
             throw new ArgumentNullException(nameof(entity));

@@ -1,35 +1,87 @@
 ﻿@page "/Artists"
 @using ShowTime.BusinessLogic.Abstractions
 @using ShowTime.BusinessLogic.Dtos
+@using System.ComponentModel.DataAnnotations
 @inject IArtistService ArtistService
 @rendermode InteractiveServer
 
-
-
-<div class="page-header">
-    <div class="container">
-        <h1 class="display-4 fw-bold mb-0">🎵 Artist Management</h1>
-        <p class="lead">Manage your festival artists with style</p>
-    </div>
-</div>
-
 <div class="container">
+    <div class="page-title-section">
+        <h1 class="page-title">🎵 Artist Management</h1>
+        <p class="page-subtitle">Manage your festival artists with style</p>
+    </div>
+    <!-- Search and Filter Section -->
+    <div class="search-filter-section mb-4">
+        <div class="card search-card">
+            <div class="card-body">
+                <h5 class="text-center mb-3">🔍 Search & Filter Artists</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">🎤 Search by Name</label>
+                        <input type="text" @bind="searchTerm" @bind:event="oninput" 
+                               class="form-control search-input" placeholder="Enter artist name..." />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">🎵 Filter by Genre</label>
+                        <select @bind="selectedGenre" @bind:event="onchange" class="form-select search-input">
+                            <option value="">All Genres</option>
+                            @foreach (var genre in availableGenres)
+                            {
+                                <option value="@genre">@genre</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">📊 Sort by Name</label>
+                        <select @bind="sortOrder" @bind:event="onchange" class="form-select search-input">
+                            <option value="">Default Order</option>
+                            <option value="asc">A-Z (Ascending)</option>
+                            <option value="desc">Z-A (Descending)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-clear w-100" @onclick="ClearFilters">
+                            🗑️ Clear
+                        </button>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(_searchTerm) || !string.IsNullOrEmpty(_selectedGenre) || !string.IsNullOrEmpty(_sortOrder))
+                {
+                    <div class="mt-3 text-center">
+                        <span class="badge results-badge">
+                            Found @filteredArtists.Count of @allArtists.Count artists
+                            @if (!string.IsNullOrEmpty(_sortOrder))
+                            {
+                                <span class="ms-2">| Sorted @(_sortOrder == "asc" ? "A-Z" : "Z-A")</span>
+                            }
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Add New Artist Section -->
     <div class="card add-artist-card">
         <div class="card-body">
             <h3 class="text-center mb-4">✨ Add New Artist</h3>
             <EditForm Model="newArtist" OnValidSubmit="AddArtist" FormName="AddArtistForm">
+                <DataAnnotationsValidator />
                 <div class="row">
                     <div class="col-md-4">
                         <label class="form-label fw-bold">🎤 Artist Name</label>
                         <InputText @bind-Value="newArtist.Name" class="form-control form-control-modern" placeholder="Enter artist name"/>
+                        <ValidationMessage For="@(() => newArtist.Name)" class="text-warning fw-bold" />
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">🎵 Genre</label>
                         <InputText @bind-Value="newArtist.Genre" class="form-control form-control-modern" placeholder="Enter genre"/>
+                        <ValidationMessage For="@(() => newArtist.Genre)" class="text-warning fw-bold" />
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">🖼️ Image URL</label>
                         <InputText @bind-Value="newArtist.Image" class="form-control form-control-modern" placeholder="Enter image URL"/>
+                        <ValidationMessage For="@(() => newArtist.Image)" class="text-warning fw-bold" />
                     </div>
                 </div>
                 <div class="text-center mt-4">
@@ -43,7 +95,14 @@
 
     <h2 class="section-title">🌟 Our Artists</h2>
 
-    @if (artists.Count == 0)
+    @if (filteredArtists.Count == 0 && allArtists.Count > 0)
+    {
+        <div class="no-results">
+            <h4>🔍 No artists found!</h4>
+            <p>Try adjusting your search criteria or clear the filters</p>
+        </div>
+    }
+    else if (allArtists.Count == 0)
     {
         <div class="no-artists">
             <h4>🎭 No artists registered yet!</h4>
@@ -53,11 +112,12 @@
     else
     {
         <div class="row">
-            @foreach (var artist in artists)
+            @foreach (var artist in filteredArtists)
             {
                 <div class="col-lg-4 col-md-6">
                     <div class="card artist-card">
-                        <img class="artist-image" src="@artist.Image" alt="@artist.Name" />
+                        <img class="artist-image" src="@artist.Image" alt="@artist.Name" 
+                             onerror="this.src='https://via.placeholder.com/400x250/667eea/white?text=No+Image'" />
                         <div class="artist-info">
                             <h5 class="artist-name">@artist.Name</h5>
                             <span class="genre-badge">@artist.Genre</span>
@@ -67,17 +127,21 @@
                                 <div class="edit-form">
                                     <h6 class="text-white mb-3">✏️ Edit Artist</h6>
                                     <EditForm Model="updateArtist" OnValidSubmit="UpdateArtist" FormName="@($"UpdateArtistForm_{artist.Id}")">
+                                        <DataAnnotationsValidator />
                                         <div class="mb-3">
                                             <label class="form-label">🎤 Name</label>
                                             <InputText @bind-Value="updateArtist.Name" class="form-control"/>
+                                            <ValidationMessage For="@(() => updateArtist.Name)" class="text-warning fw-bold" />
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">🎵 Genre</label>
                                             <InputText @bind-Value="updateArtist.Genre" class="form-control"/>
+                                            <ValidationMessage For="@(() => updateArtist.Genre)" class="text-warning fw-bold" />
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">🖼️ Image URL</label>
                                             <InputText @bind-Value="updateArtist.Image" class="form-control"/>
+                                            <ValidationMessage For="@(() => updateArtist.Image)" class="text-warning fw-bold" />
                                         </div>
                                         <div class="d-flex gap-2">
                                             <button type="submit" class="btn btn-save">
@@ -109,9 +173,45 @@
     }
 </div>
 
+
 @code {
-    private IList<ArtistGetDto> artists = new List<ArtistGetDto>();
+    private IList<ArtistGetDto> allArtists = new List<ArtistGetDto>();
+    private IList<ArtistGetDto> filteredArtists = new List<ArtistGetDto>();
+    private IList<string> availableGenres = new List<string>();
     private int? editingArtistId = null;
+    
+    private string _searchTerm = string.Empty;
+    private string searchTerm 
+    { 
+        get => _searchTerm; 
+        set 
+        { 
+            _searchTerm = value; 
+            FilterArtists(); 
+        } 
+    }
+    
+    private string _selectedGenre = string.Empty;
+    private string selectedGenre 
+    { 
+        get => _selectedGenre; 
+        set 
+        { 
+            _selectedGenre = value; 
+            FilterArtists(); 
+        } 
+    }
+    
+    private string _sortOrder = string.Empty;
+    private string sortOrder 
+    { 
+        get => _sortOrder; 
+        set 
+        { 
+            _sortOrder = value; 
+            FilterArtists(); 
+        } 
+    }
 
     [SupplyParameterFromForm] 
     private ArtistCreateDto newArtist { get; set; } = new();
@@ -120,16 +220,58 @@
     
     protected override async Task OnInitializedAsync()
     {
-        artists = await ArtistService.GetAllArtistsAsync();
+        await LoadArtists();
+    }
+
+    private async Task LoadArtists()
+    {
+        allArtists = await ArtistService.GetAllArtistsAsync();
+        UpdateAvailableGenres();
+        FilterArtists();
+    }
+
+    private void UpdateAvailableGenres()
+    {
+        availableGenres = allArtists
+            .Select(a => a.Genre)
+            .Where(g => !string.IsNullOrEmpty(g))
+            .Distinct()
+            .OrderBy(g => g)
+            .ToList();
+    }
+
+    private void FilterArtists()
+    {
+        var filtered = allArtists.Where(artist =>
+            (string.IsNullOrEmpty(_searchTerm) || 
+             artist.Name.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrEmpty(_selectedGenre) || 
+             artist.Genre.Equals(_selectedGenre, StringComparison.OrdinalIgnoreCase))
+        );
+
+        filteredArtists = _sortOrder switch
+        {
+            "asc" => filtered.OrderBy(a => a.Name).ToList(),
+            "desc" => filtered.OrderByDescending(a => a.Name).ToList(),
+            _ => filtered.ToList()
+        };
+        
+        StateHasChanged();
+    }
+
+    private void ClearFilters()
+    {
+        _searchTerm = string.Empty;
+        _selectedGenre = string.Empty;
+        _sortOrder = string.Empty;
+        FilterArtists();
     }
 
     private async Task AddArtist()
     {
         await ArtistService.AddArtistAsync(newArtist);
         newArtist = new();
-
-
-        artists = await ArtistService.GetAllArtistsAsync();
+        await LoadArtists();
     }
 
     private void StartEdit(ArtistGetDto artist)
@@ -155,12 +297,290 @@
         await ArtistService.UpdateArtistAsync(updateArtist);
         editingArtistId = null;
         updateArtist = new();
-        artists = await ArtistService.GetAllArtistsAsync();
+        await LoadArtists();
     }
 
     private async Task DeleteArtist(int id)
     {
         await ArtistService.DeleteArtistAsync(id);
-        artists = await ArtistService.GetAllArtistsAsync();
+        await LoadArtists();
     }
 }
+
+
+<style>
+    /* Page Title Section */
+    .page-title-section {
+        text-align: center;
+        padding: 2rem 0 1rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .page-subtitle {
+        font-size: 1.2rem;
+        color: #6c757d;
+        font-weight: 500;
+        margin: 0;
+    }
+
+    /* Search Section */
+    .search-filter-section {
+        margin-bottom: 2rem;
+    }
+
+    .search-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 20px;
+        color: white;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .search-card .card-body {
+        padding: 2rem;
+    }
+
+    .search-input {
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 12px 16px;
+        backdrop-filter: blur(10px);
+    }
+
+    .search-input::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .search-input:focus {
+        border-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .search-input option {
+        background: #2c3e50;
+        color: white;
+    }
+
+    .btn-clear {
+        background: linear-gradient(45deg, #868e96, #6c757d);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        padding: 12px 16px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-clear:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(134, 142, 150, 0.4);
+        color: white;
+    }
+
+    .results-badge {
+        background: linear-gradient(45deg, #43e97b, #38f9d7);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    /* Add Artist Card */
+    .add-artist-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3);
+        color: white;
+        margin-bottom: 3rem;
+    }
+
+    .add-artist-card .card-body {
+        padding: 2rem;
+    }
+
+    /* Artist Cards */
+    .artist-card {
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        background: white;
+    }
+
+    .artist-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .artist-image {
+        height: 250px;
+        object-fit: cover;
+        width: 100%;
+        transition: transform 0.3s ease;
+    }
+
+    .artist-card:hover .artist-image {
+        transform: scale(1.05);
+    }
+
+    .artist-info {
+        padding: 1.5rem;
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    }
+
+    .artist-name {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .artist-genre {
+        color: #7f8c8d;
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .genre-badge {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        display: flex;
+        gap: 10px;
+        justify-content: space-between;
+    }
+
+    .btn-edit {
+        background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        color: white;
+        border-radius: 20px;
+        padding: 8px 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .btn-edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4);
+        color: white;
+    }
+
+    .btn-delete {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        color: white;
+        border-radius: 20px;
+        padding: 8px 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .btn-delete:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+        color: white;
+    }
+
+    /* Edit Form */
+    .edit-form {
+        background: linear-gradient(145deg, #667eea, #764ba2);
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-top: 1rem;
+    }
+
+    .edit-form .form-control {
+        border-radius: 10px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        margin-bottom: 1rem;
+    }
+
+    .edit-form .form-control:focus {
+        border-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .edit-form label {
+        color: white;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-save {
+        background: linear-gradient(45deg, #51cf66, #40c057);
+        color: white;
+        border-radius: 15px;
+        padding: 8px 20px;
+        font-weight: 600;
+    }
+
+    .btn-cancel {
+        background: linear-gradient(45deg, #868e96, #6c757d);
+        color: white;
+        border-radius: 15px;
+        padding: 8px 20px;
+        font-weight: 600;
+    }
+
+    /* No Results/Artists Messages */
+    .no-results {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border-radius: 20px;
+        font-size: 1.2rem;
+    }
+
+    .no-artists {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 20px;
+        font-size: 1.2rem;
+    }
+
+    .validation-message {
+        color: #ffd93d !important;
+        font-weight: bold;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+</style>

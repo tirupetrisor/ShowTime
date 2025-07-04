@@ -1,5 +1,12 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
 }
 
 a, .btn-link {
@@ -16,9 +23,7 @@ a, .btn-link {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
-.content {
-    padding-top: 1.1rem;
-}
+/* Content area is now handled by MainLayout */
 
 h1:focus {
     outline: none;
@@ -50,27 +55,15 @@ h1:focus {
     border-color: #929292;
 }
 
-
-.page-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 3rem 0;
-    margin-bottom: 2rem;
-    border-radius: 0 0 50px 50px;
-    text-align: center;
-}
-
-.add-artist-card {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+/* Common Utility Classes */
+.btn-modern {
+    border-radius: 25px;
+    padding: 12px 30px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
     border: none;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3);
-    color: white;
-    margin-bottom: 3rem;
-}
-
-.add-artist-card .card-body {
-    padding: 2rem;
 }
 
 .form-control-modern {
@@ -93,16 +86,23 @@ h1:focus {
     background: rgba(255, 255, 255, 0.2);
 }
 
-.btn-modern {
-    border-radius: 25px;
-    padding: 12px 30px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.3s ease;
-    border: none;
+.gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
+.gradient-success {
+    background: linear-gradient(45deg, #43e97b, #38f9d7);
+}
+
+.gradient-info {
+    background: linear-gradient(45deg, #4facfe, #00f2fe);
+}
+
+.gradient-danger {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+}
+
+/* Global button style for add buttons across components */
 .btn-add {
     background: linear-gradient(45deg, #ff6b6b, #ffd93d);
     color: white;
@@ -112,153 +112,6 @@ h1:focus {
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
     color: white;
-}
-
-.artist-card {
-    border: none;
-    border-radius: 20px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
-    background: white;
-}
-
-.artist-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-}
-
-.artist-image {
-    height: 250px;
-    object-fit: cover;
-    width: 100%;
-    transition: transform 0.3s ease;
-}
-
-.artist-card:hover .artist-image {
-    transform: scale(1.05);
-}
-
-.artist-info {
-    padding: 1.5rem;
-    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
-}
-
-.artist-name {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-}
-
-.artist-genre {
-    color: #7f8c8d;
-    font-size: 0.95rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.genre-badge {
-    background: linear-gradient(45deg, #667eea, #764ba2);
-    color: white;
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.action-buttons {
-    padding: 1rem 1.5rem;
-    background: #f8f9fa;
-    display: flex;
-    gap: 10px;
-    justify-content: space-between;
-}
-
-.btn-edit {
-    background: linear-gradient(45deg, #4ecdc4, #44a08d);
-    color: white;
-    border-radius: 20px;
-    padding: 8px 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.btn-edit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4);
-    color: white;
-}
-
-.btn-delete {
-    background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-    color: white;
-    border-radius: 20px;
-    padding: 8px 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.btn-delete:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
-    color: white;
-}
-
-.edit-form {
-    background: linear-gradient(145deg, #667eea, #764ba2);
-    padding: 1.5rem;
-    border-radius: 15px;
-    margin-top: 1rem;
-}
-
-.edit-form .form-control {
-    border-radius: 10px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    margin-bottom: 1rem;
-}
-
-.edit-form .form-control:focus {
-    border-color: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.edit-form label {
-    color: white;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.btn-save {
-    background: linear-gradient(45deg, #51cf66, #40c057);
-    color: white;
-    border-radius: 15px;
-    padding: 8px 20px;
-    font-weight: 600;
-}
-
-.btn-cancel {
-    background: linear-gradient(45deg, #868e96, #6c757d);
-    color: white;
-    border-radius: 15px;
-    padding: 8px 20px;
-    font-weight: 600;
-}
-
-.no-artists {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 20px;
-    font-size: 1.2rem;
 }
 
 .section-title {
@@ -280,4 +133,16 @@ h1:focus {
     height: 4px;
     background: linear-gradient(45deg, #667eea, #764ba2);
     border-radius: 2px;
+}
+
+.card-modern {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.card-modern:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }

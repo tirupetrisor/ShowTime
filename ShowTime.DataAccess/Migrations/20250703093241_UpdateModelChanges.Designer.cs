@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShowTime.DataAccess;
 
@@ -10,10 +11,12 @@ using ShowTime.DataAccess;
 
 namespace ShowTime.DataAccess.Migrations
 {
-    [DbContext(typeof(ShowTimeContext))]
-    partial class ShowTimeContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(ShowTimeDbContext))]
+    [Migration("20250703093241_UpdateModelChanges")]
+    partial class UpdateModelChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,11 +35,13 @@ namespace ShowTime.DataAccess.Migrations
 
                     b.Property<string>("Genre")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Image")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -87,21 +92,28 @@ namespace ShowTime.DataAccess.Migrations
 
                     b.Property<string>("Location")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("SplashArt")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Festivals", (string)null);
                 });
@@ -144,7 +156,8 @@ namespace ShowTime.DataAccess.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<int>("Role")
                         .HasColumnType("int");
@@ -157,7 +170,7 @@ namespace ShowTime.DataAccess.Migrations
             modelBuilder.Entity("ShowTime.DataAccess.Models.Booking", b =>
                 {
                     b.HasOne("ShowTime.DataAccess.Models.Festival", "Festival")
-                        .WithMany()
+                        .WithMany("Bookings")
                         .HasForeignKey("FestivalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -171,6 +184,13 @@ namespace ShowTime.DataAccess.Migrations
                     b.Navigation("Festival");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ShowTime.DataAccess.Models.Festival", b =>
+                {
+                    b.HasOne("ShowTime.DataAccess.Models.User", null)
+                        .WithMany("Festivals")
+                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("ShowTime.DataAccess.Models.Lineup", b =>
@@ -199,12 +219,16 @@ namespace ShowTime.DataAccess.Migrations
 
             modelBuilder.Entity("ShowTime.DataAccess.Models.Festival", b =>
                 {
+                    b.Navigation("Bookings");
+
                     b.Navigation("Lineups");
                 });
 
             modelBuilder.Entity("ShowTime.DataAccess.Models.User", b =>
                 {
                     b.Navigation("Bookings");
+
+                    b.Navigation("Festivals");
                 });
 #pragma warning restore 612, 618
         }

@@ -105,7 +105,12 @@ namespace ShowTime.DataAccess.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Festivals", (string)null);
                 });
@@ -178,6 +183,13 @@ namespace ShowTime.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ShowTime.DataAccess.Models.Festival", b =>
+                {
+                    b.HasOne("ShowTime.DataAccess.Models.User", null)
+                        .WithMany("Festivals")
+                        .HasForeignKey("UserId");
+                });
+
             modelBuilder.Entity("ShowTime.DataAccess.Models.Lineup", b =>
                 {
                     b.HasOne("ShowTime.DataAccess.Models.Artist", "Artist")
@@ -212,6 +224,8 @@ namespace ShowTime.DataAccess.Migrations
             modelBuilder.Entity("ShowTime.DataAccess.Models.User", b =>
                 {
                     b.Navigation("Bookings");
+
+                    b.Navigation("Festivals");
                 });
 #pragma warning restore 612, 618
         }
