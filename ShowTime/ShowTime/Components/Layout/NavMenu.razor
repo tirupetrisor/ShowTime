@@ -32,15 +32,36 @@
                 <span class="nav-text">Festivals</span>
             </NavLink>
 
-            <NavLink class="nav-link" href="/Lineups">
-                <span class="nav-icon">🎵</span>
-                <span class="nav-text">Lineups</span>
-            </NavLink>
+            <AuthorizeView Roles="Administrator">
+                <Authorized>
+                    <NavLink class="nav-link" href="/Users">
+                        <span class="nav-icon">👥</span>
+                        <span class="nav-text">Users</span>
+                    </NavLink>
+                </Authorized>
+            </AuthorizeView>
+
+            <AuthorizeView>
+                <NotAuthorized>
+                    <NavLink class="nav-link" href="/login">
+                        <span class="nav-icon">🔐</span>
+                        <span class="nav-text">Sign In</span>
+                    </NavLink>
+                </NotAuthorized>
+                <Authorized>
+                    <NavLink class="nav-link" href="/logout">
+                        <span class="nav-icon">🚪</span>
+                        <span class="nav-text">Logout</span>
+                    </NavLink>
+                </Authorized>
+            </AuthorizeView>
         </div>
-
-
     </div>
 </nav>
+
+<style>
+    /* Removed nav-user-info and nav-logout specific styles */
+</style>
 
 <script>
     function toggleMobileMenu() {

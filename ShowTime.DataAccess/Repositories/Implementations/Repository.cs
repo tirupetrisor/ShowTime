@@ -90,4 +90,8 @@ public class Repository <T> : IRepository<T> where T: class
         }
     }
 
+    public async Task SaveChangesAsync()
+    {
+        await Context.SaveChangesAsync();
+    }
 }

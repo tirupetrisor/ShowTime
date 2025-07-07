@@ -4,13 +4,18 @@
 @using System.ComponentModel.DataAnnotations
 @inject IArtistService ArtistService
 @rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@attribute [StreamRendering]
+
+<PageTitle>Artists - ShowTime</PageTitle>
 
 <div class="container">
     <div class="page-title-section">
         <h1 class="page-title">🎵 Artist Management</h1>
-        <p class="page-subtitle">Manage your festival artists with style</p>
+        <p class="page-subtitle">Discover amazing artists performing at our festivals</p>
     </div>
-    <!-- Search and Filter Section -->
+    
+    <!-- Search and Filter Section - ACCESSIBLE TO ALL -->
     <div class="search-filter-section mb-4">
         <div class="card search-card">
             <div class="card-body">
@@ -61,38 +66,43 @@
         </div>
     </div>
 
-    <!-- Add New Artist Section -->
-    <div class="card add-artist-card">
-        <div class="card-body">
-            <h3 class="text-center mb-4">✨ Add New Artist</h3>
-            <EditForm Model="newArtist" OnValidSubmit="AddArtist" FormName="AddArtistForm">
-                <DataAnnotationsValidator />
-                <div class="row">
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">🎤 Artist Name</label>
-                        <InputText @bind-Value="newArtist.Name" class="form-control form-control-modern" placeholder="Enter artist name"/>
-                        <ValidationMessage For="@(() => newArtist.Name)" class="text-warning fw-bold" />
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">🎵 Genre</label>
-                        <InputText @bind-Value="newArtist.Genre" class="form-control form-control-modern" placeholder="Enter genre"/>
-                        <ValidationMessage For="@(() => newArtist.Genre)" class="text-warning fw-bold" />
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">🖼️ Image URL</label>
-                        <InputText @bind-Value="newArtist.Image" class="form-control form-control-modern" placeholder="Enter image URL"/>
-                        <ValidationMessage For="@(() => newArtist.Image)" class="text-warning fw-bold" />
-                    </div>
+    <!-- Add New Artist Section - ONLY FOR ADMINISTRATORS -->
+    <AuthorizeView Roles="Administrator">
+        <Authorized Context="authContext">
+            <div class="card add-artist-card">
+                <div class="card-body">
+                    <h3 class="text-center mb-4">✨ Add New Artist</h3>
+                    <EditForm Model="newArtist" OnValidSubmit="AddArtist" FormName="AddArtistForm">
+                        <DataAnnotationsValidator />
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">🎤 Artist Name</label>
+                                <InputText @bind-Value="newArtist.Name" class="form-control form-control-modern" placeholder="Enter artist name"/>
+                                <ValidationMessage For="@(() => newArtist.Name)" class="text-warning fw-bold" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">🎵 Genre</label>
+                                <InputText @bind-Value="newArtist.Genre" class="form-control form-control-modern" placeholder="Enter genre"/>
+                                <ValidationMessage For="@(() => newArtist.Genre)" class="text-warning fw-bold" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">🖼️ Image URL</label>
+                                <InputText @bind-Value="newArtist.Image" class="form-control form-control-modern" placeholder="Enter image URL"/>
+                                <ValidationMessage For="@(() => newArtist.Image)" class="text-warning fw-bold" />
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-add btn-modern">
+                                <i class="fas fa-plus"></i> Add Artist
+                            </button>
+                        </div>
+                    </EditForm>
                 </div>
-                <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-add btn-modern">
-                        <i class="fas fa-plus"></i> Add Artist
-                    </button>
-                </div>
-            </EditForm>
-        </div>
-    </div>
+            </div>
+        </Authorized>
+    </AuthorizeView>
 
+    <!-- Artists Grid Section - VISIBLE TO ALL -->
     <h2 class="section-title">🌟 Our Artists</h2>
 
     @if (filteredArtists.Count == 0 && allArtists.Count > 0)
@@ -106,7 +116,11 @@
     {
         <div class="no-artists">
             <h4>🎭 No artists registered yet!</h4>
-            <p>Start by adding your first artist above</p>
+            <AuthorizeView Roles="Administrator">
+                <Authorized Context="authContext">
+                    <p>Start by adding your first artist above</p>
+                </Authorized>
+            </AuthorizeView>
         </div>
     }
     else
@@ -122,49 +136,60 @@
                             <h5 class="artist-name">@artist.Name</h5>
                             <span class="genre-badge">@artist.Genre</span>
                             
-                            @if (editingArtistId == artist.Id)
-                            {
-                                <div class="edit-form">
-                                    <h6 class="text-white mb-3">✏️ Edit Artist</h6>
-                                    <EditForm Model="updateArtist" OnValidSubmit="UpdateArtist" FormName="@($"UpdateArtistForm_{artist.Id}")">
-                                        <DataAnnotationsValidator />
-                                        <div class="mb-3">
-                                            <label class="form-label">🎤 Name</label>
-                                            <InputText @bind-Value="updateArtist.Name" class="form-control"/>
-                                            <ValidationMessage For="@(() => updateArtist.Name)" class="text-warning fw-bold" />
+                            <!-- Edit Form - ONLY FOR ADMINISTRATORS -->
+                            <AuthorizeView Roles="Administrator">
+                                <Authorized Context="authContext">
+                                    @if (editingArtistId == artist.Id)
+                                    {
+                                        <div class="edit-form">
+                                            <h6 class="text-white mb-3">✏️ Edit Artist</h6>
+                                            <EditForm Model="updateArtist" OnValidSubmit="UpdateArtist" FormName="@($"UpdateArtistForm_{artist.Id}")">
+                                                <DataAnnotationsValidator />
+                                                <div class="mb-3">
+                                                    <label class="form-label">🎤 Name</label>
+                                                    <InputText @bind-Value="updateArtist.Name" class="form-control"/>
+                                                    <ValidationMessage For="@(() => updateArtist.Name)" class="text-warning fw-bold" />
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">🎵 Genre</label>
+                                                    <InputText @bind-Value="updateArtist.Genre" class="form-control"/>
+                                                    <ValidationMessage For="@(() => updateArtist.Genre)" class="text-warning fw-bold" />
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">🖼️ Image URL</label>
+                                                    <InputText @bind-Value="updateArtist.Image" class="form-control"/>
+                                                    <ValidationMessage For="@(() => updateArtist.Image)" class="text-warning fw-bold" />
+                                                </div>
+                                                <div class="d-flex gap-2">
+                                                    <button type="submit" class="btn btn-save">
+                                                        <i class="fas fa-check"></i> Save
+                                                    </button>
+                                                    <button type="button" class="btn btn-cancel" @onclick="CancelEdit">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </div>
+                                            </EditForm>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">🎵 Genre</label>
-                                            <InputText @bind-Value="updateArtist.Genre" class="form-control"/>
-                                            <ValidationMessage For="@(() => updateArtist.Genre)" class="text-warning fw-bold" />
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">🖼️ Image URL</label>
-                                            <InputText @bind-Value="updateArtist.Image" class="form-control"/>
-                                            <ValidationMessage For="@(() => updateArtist.Image)" class="text-warning fw-bold" />
-                                        </div>
-                                        <div class="d-flex gap-2">
-                                            <button type="submit" class="btn btn-save">
-                                                <i class="fas fa-check"></i> Save
-                                            </button>
-                                            <button type="button" class="btn btn-cancel" @onclick="CancelEdit">
-                                                <i class="fas fa-times"></i> Cancel
-                                            </button>
-                                        </div>
-                                    </EditForm>
-                                </div>
-                            }
+                                    }
+                                </Authorized>
+                            </AuthorizeView>
                         </div>
+                        
+                        <!-- Action Buttons - ROLE-BASED -->
                         <div class="action-buttons">
-                            @if (editingArtistId != artist.Id)
-                            {
-                                <button class="btn btn-edit" @onclick="() => StartEdit(artist)">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                            }
-                            <button class="btn btn-delete" @onclick="async () => await DeleteArtist(artist.Id)">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                            <AuthorizeView Roles="Administrator">
+                                <Authorized Context="authContext">
+                                    @if (editingArtistId != artist.Id)
+                                    {
+                                        <button class="btn btn-edit" @onclick="() => StartEdit(artist)">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                    }
+                                    <button class="btn btn-delete" @onclick="async () => await DeleteArtist(artist.Id)">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </Authorized>
+                            </AuthorizeView>
                         </div>
                     </div>
                 </div>
@@ -582,5 +607,85 @@
         font-size: 0.875rem;
         margin-top: 0.25rem;
         display: block;
+    }
+
+    /* New styles for disabled sections */
+    .add-artist-card-disabled {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        color: white;
+        margin-bottom: 3rem;
+    }
+
+    .form-control-modern {
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 12px 20px;
+        backdrop-filter: blur(10px);
+        margin-bottom: 1rem;
+    }
+
+    .form-control-modern::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .form-control-modern:focus {
+        border-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .btn-add {
+        background: linear-gradient(45deg, #4facfe, #00f2fe);
+        color: white;
+        border-radius: 25px;
+        padding: 12px 30px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(79, 172, 254, 0.4);
+        color: white;
+    }
+
+    .btn-modern {
+        border-radius: 25px;
+        padding: 12px 30px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 3rem;
+        position: relative;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 2px;
     }
 </style>

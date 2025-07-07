@@ -1,0 +1,686 @@
+@page "/register"
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using ShowTime.BusinessLogic.Abstractions
+@using ShowTime.BusinessLogic.Dtos
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Register - ShowTime</PageTitle>
+
+<div class="register-page">
+    <div class="register-background">
+        <div class="animated-shapes">
+            <div class="shape shape1"></div>
+            <div class="shape shape2"></div>
+            <div class="shape shape3"></div>
+            <div class="shape shape4"></div>
+            <div class="shape shape5"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="register-container">
+
+
+            <div class="card register-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span class="card-icon">✨</span>
+                        Create Your Account
+                    </h3>
+                </div>
+                
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger animate-shake">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            <span>@errorMessage</span>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(successMessage))
+                    {
+                        <div class="alert alert-success animate-bounce">
+                            <i class="fas fa-check-circle"></i> 
+                            <span>@successMessage</span>
+                        </div>
+                    }
+
+                    <EditForm Model="registerInfo" OnValidSubmit="HandleRegister" FormName="RegisterForm">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-envelope"></i>
+                                Email Address
+                            </label>
+                            <div class="input-wrapper">
+                                <InputText @bind-Value="registerInfo.Email" class="form-control form-control-modern" 
+                                           placeholder="Enter your email address" />
+                                <div class="input-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            </div>
+                            <ValidationMessage For="@(() => registerInfo.Email)" class="validation-message" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-lock"></i>
+                                Password
+                            </label>
+                            <div class="input-wrapper">
+                                <InputText type="@(showPassword ? "text" : "password")" @bind-Value="registerInfo.Password" 
+                                           class="form-control form-control-modern" 
+                                           placeholder="Create a strong password" />
+                                <div class="input-icon password-toggle" @onclick="TogglePassword">
+                                    <i class="fas @(showPassword ? "fa-eye-slash" : "fa-eye")"></i>
+                                </div>
+                            </div>
+                            <ValidationMessage For="@(() => registerInfo.Password)" class="validation-message" />
+                            <div class="password-strength">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i>
+                                    Password should be at least 8 characters long
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-lock"></i>
+                                Confirm Password
+                            </label>
+                            <div class="input-wrapper">
+                                <InputText type="@(showConfirmPassword ? "text" : "password")" @bind-Value="registerInfo.ConfirmPassword" 
+                                           class="form-control form-control-modern" 
+                                           placeholder="Confirm your password" />
+                                <div class="input-icon password-toggle" @onclick="ToggleConfirmPassword">
+                                    <i class="fas @(showConfirmPassword ? "fa-eye-slash" : "fa-eye")"></i>
+                                </div>
+                            </div>
+                            <ValidationMessage For="@(() => registerInfo.ConfirmPassword)" class="validation-message" />
+                        </div>
+
+
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-register btn-modern" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    <span>Creating Account...</span>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-user-plus"></i>
+                                    <span>Create Account</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+
+                    <div class="form-footer">
+                        <p class="login-link">
+                            Already have an account? 
+                            <a href="/login" class="link-accent">Login here</a>
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private RegisterDto registerInfo { get; set; } = new();
+
+    [CascadingParameter] 
+    private HttpContext HttpContext { get; set; } = null!;
+
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+    private bool isLoading = false;
+    private bool showPassword = false;
+    private bool showConfirmPassword = false;
+
+
+    private void TogglePassword()
+    {
+        showPassword = !showPassword;
+    }
+
+    private void ToggleConfirmPassword()
+    {
+        showConfirmPassword = !showConfirmPassword;
+    }
+
+    private async Task HandleRegister()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = string.Empty;
+            successMessage = string.Empty;
+            StateHasChanged();
+
+            var response = await UserService.RegisterAsync(registerInfo);
+
+            if (response.Success)
+            {
+                successMessage = "🎉 Account created successfully! Redirecting to login...";
+                StateHasChanged();
+                
+                // Redirect la login după 3 secunde
+                await Task.Delay(3000);
+                NavigationManager.NavigateTo("/login");
+            }
+            else
+            {
+                errorMessage = response.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An unexpected error occurred. Please try again.";
+            Console.WriteLine($"Registration failed: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}
+
+<style>
+    .register-page {
+        min-height: 100vh;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .register-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        z-index: -1;
+    }
+
+    .animated-shapes {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .shape {
+        position: absolute;
+        opacity: 0.08;
+        animation: float 25s infinite linear;
+    }
+
+    .shape1 {
+        top: 10%;
+        left: 5%;
+        width: 60px;
+        height: 60px;
+        background: white;
+        border-radius: 50%;
+        animation-delay: 0s;
+    }
+
+    .shape2 {
+        top: 70%;
+        right: 15%;
+        width: 90px;
+        height: 90px;
+        background: white;
+        border-radius: 20px;
+        animation-delay: 5s;
+    }
+
+    .shape3 {
+        bottom: 30%;
+        left: 15%;
+        width: 50px;
+        height: 50px;
+        background: white;
+        border-radius: 50%;
+        animation-delay: 10s;
+    }
+
+    .shape4 {
+        top: 40%;
+        right: 5%;
+        width: 100px;
+        height: 100px;
+        background: white;
+        border-radius: 25px;
+        animation-delay: 15s;
+    }
+
+    .shape5 {
+        top: 60%;
+        left: 40%;
+        width: 70px;
+        height: 70px;
+        background: white;
+        border-radius: 50%;
+        animation-delay: 20s;
+    }
+
+    @@keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        25% { transform: translateY(-30px) rotate(90deg); }
+        50% { transform: translateY(0px) rotate(180deg); }
+        75% { transform: translateY(-15px) rotate(270deg); }
+    }
+
+    .register-container {
+        width: 100%;
+        max-width: 550px;
+        margin: 0 auto;
+        padding: 2rem;
+        animation: slideInUp 0.8s ease-out;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    @@keyframes slideInUp {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .page-title-section {
+        text-align: center;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 3rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .title-icon {
+        font-size: 3rem;
+        animation: bounce 2s infinite;
+    }
+
+    .title-text {
+        background: linear-gradient(45deg, #ffffff, #f8f9fa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    @@keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .page-subtitle {
+        font-size: 1.3rem;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+        margin: 0;
+    }
+
+    .register-card {
+        background: rgba(255, 255, 255, 0.95);
+        border: none;
+        border-radius: 25px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(20px);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .register-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+        border-radius: 25px 25px 0 0;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .card-icon {
+        font-size: 1.5rem;
+        animation: sparkle 2s infinite;
+    }
+
+    @@keyframes sparkle {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .card-body {
+        padding: 2.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.8rem;
+    }
+
+    .form-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .form-control-modern {
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        background: #f8f9fa;
+        color: #495057;
+        padding: 15px 50px 15px 20px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .form-control-modern::placeholder {
+        color: #adb5bd;
+    }
+
+    .form-control-modern:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        background: white;
+        outline: none;
+    }
+
+    .input-icon {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #adb5bd;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+
+    .password-toggle {
+        cursor: pointer;
+        color: #667eea;
+    }
+
+    .password-toggle:hover {
+        color: #764ba2;
+    }
+
+    .password-strength {
+        margin-top: 0.5rem;
+    }
+
+    .terms-checkbox {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    .checkbox-input {
+        display: none;
+    }
+
+    .checkbox-custom {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #e9ecef;
+        border-radius: 4px;
+        background: #f8f9fa;
+        position: relative;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .checkbox-input:checked + .checkbox-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+    }
+
+    .checkbox-input:checked + .checkbox-custom::after {
+        content: '✓';
+        color: white;
+        font-size: 14px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .checkbox-text {
+        color: #6c757d;
+        flex: 1;
+    }
+
+    .form-actions {
+        text-align: center;
+        margin: 2rem 0;
+    }
+
+    .btn-register {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50px;
+        padding: 15px 40px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        border: none;
+        min-width: 220px;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 0 auto;
+    }
+
+    .btn-register:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .btn-register:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .form-footer {
+        text-align: center;
+        padding-top: 1rem;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .login-link, .social-register {
+        color: #6c757d;
+        margin: 0.5rem 0;
+        font-size: 0.95rem;
+    }
+
+    .link-accent {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .link-accent:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+
+    .divider {
+        margin: 1rem 0;
+        position: relative;
+        color: #adb5bd;
+        font-size: 0.9rem;
+    }
+
+    .divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #e9ecef;
+        z-index: 1;
+    }
+
+    .divider span {
+        background: white;
+        padding: 0 1rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .alert {
+        border-radius: 15px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+        color: white;
+    }
+
+    .animate-shake {
+        animation: shake 0.5s ease-in-out;
+    }
+
+    @@keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+
+    .animate-bounce {
+        animation: registerBounce 0.6s ease-in-out;
+    }
+
+    @@keyframes registerBounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .validation-message {
+        color: #dc3545;
+        font-weight: 500;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.1em;
+    }
+
+    .text-muted {
+        color: #6c757d;
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .register-container {
+            padding: 1rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .btn-register {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .checkbox-label {
+            font-size: 0.85rem;
+        }
+    }
+</style> 

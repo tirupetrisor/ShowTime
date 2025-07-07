@@ -1,0 +1,571 @@
+@page "/Users"
+@using ShowTime.BusinessLogic.Abstractions
+@using ShowTime.BusinessLogic.Dtos
+@using ShowTime.DataAccess.Models
+@using System.ComponentModel.DataAnnotations
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@attribute [StreamRendering]
+@attribute [Authorize(Roles = "Administrator")]
+
+<PageTitle>Users - ShowTime</PageTitle>
+
+<div class="container">
+    <div class="page-title-section">
+        <h1 class="page-title">👥 User Management</h1>
+        <p class="page-subtitle">Manage system users and their permissions</p>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="search-filter-section mb-4">
+        <div class="card search-card">
+            <div class="card-body">
+                <h5 class="text-center mb-3">🔍 Search & Filter Users</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">📧 Search by Email</label>
+                        <input type="text" @bind="searchTerm" @bind:event="oninput" 
+                               class="form-control search-input" placeholder="Enter email address..." />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">👤 Filter by Role</label>
+                        <select @bind="selectedRole" @bind:event="onchange" class="form-select search-input">
+                            <option value="">All Roles</option>
+                            <option value="0">Regular User</option>
+                            <option value="1">Administrator</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-clear w-100" @onclick="ClearFilters">
+                            🗑️ Clear
+                        </button>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(_searchTerm) || !string.IsNullOrEmpty(_selectedRole))
+                {
+                    <div class="mt-3 text-center">
+                        <span class="badge results-badge">
+                            Found @filteredUsers.Count of @allUsers.Count users
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Grid Section -->
+    <h2 class="section-title">👥 System Users</h2>
+
+    @if (filteredUsers.Count == 0 && allUsers.Count > 0)
+    {
+        <div class="no-results">
+            <h4>🔍 No users found!</h4>
+            <p>Try adjusting your search criteria or clear the filters</p>
+        </div>
+    }
+    else if (allUsers.Count == 0)
+    {
+        <div class="no-users">
+            <h4>👥 No users in the system yet!</h4>
+            <p>Users will appear here as they register</p>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var user in filteredUsers)
+            {
+                <div class="col-lg-4 col-md-6">
+                    <div class="card user-card">
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <h5 class="user-email">@user.Email</h5>
+                            <span class="role-badge role-@user.Role">
+                                @(user.Role == (int)Role.Administrator ? "👑 Administrator" : "👤 User")
+                            </span>
+                            
+                            <!-- Edit Form -->
+                            @if (editingUserId == user.Id)
+                            {
+                                <div class="edit-form">
+                                    <h6 class="text-white mb-3">✏️ Edit User</h6>
+                                    <EditForm Model="updateUser" OnValidSubmit="UpdateUser" FormName="@($"UpdateUserForm_{user.Id}")">
+                                        <DataAnnotationsValidator />
+                                        <div class="mb-3">
+                                            <label class="form-label">📧 Email</label>
+                                            <InputText @bind-Value="updateUser.Email" class="form-control" readonly/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">👤 Role</label>
+                                            <InputSelect @bind-Value="updateUser.Role" class="form-control">
+                                                <option value="0">Regular User</option>
+                                                <option value="1">Administrator</option>
+                                            </InputSelect>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-save">
+                                                <i class="fas fa-check"></i> Save
+                                            </button>
+                                            <button type="button" class="btn btn-cancel" @onclick="CancelEdit">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </button>
+                                        </div>
+                                    </EditForm>
+                                </div>
+                            }
+                        </div>
+                        <div class="action-buttons">
+                            @if (editingUserId != user.Id)
+                            {
+                                <button class="btn btn-edit" @onclick="() => StartEdit(user)">
+                                    <i class="fas fa-edit"></i> Edit Role
+                                </button>
+                            }
+                            @if (user.Role != (int)Role.Administrator)
+                            {
+                                <button class="btn btn-delete" @onclick="async () => await DeleteUser(user.Id)">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="btn btn-protected">
+                                    <i class="fas fa-shield-alt"></i> Protected
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private IList<User> allUsers = new List<User>();
+    private IList<User> filteredUsers = new List<User>();
+    private int? editingUserId = null;
+    
+    private string _searchTerm = string.Empty;
+    private string searchTerm 
+    { 
+        get => _searchTerm; 
+        set 
+        { 
+            _searchTerm = value; 
+            FilterUsers(); 
+        } 
+    }
+    
+    private string _selectedRole = string.Empty;
+    private string selectedRole 
+    { 
+        get => _selectedRole; 
+        set 
+        { 
+            _selectedRole = value; 
+            FilterUsers(); 
+        } 
+    }
+
+    private User updateUser { get; set; } = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        try
+        {
+            allUsers = await UserService.GetAllUsersAsync();
+            FilterUsers();
+        }
+        catch (Exception ex)
+        {
+            // Handle error - in production, you'd want proper logging
+            Console.WriteLine($"Error loading users: {ex.Message}");
+        }
+    }
+
+    private void FilterUsers()
+    {
+        var filtered = allUsers.Where(user =>
+            (string.IsNullOrEmpty(_searchTerm) || 
+             user.Email.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrEmpty(_selectedRole) || 
+             user.Role.ToString() == _selectedRole)
+        );
+
+        filteredUsers = filtered.OrderBy(u => u.Email).ToList();
+        StateHasChanged();
+    }
+
+    private void ClearFilters()
+    {
+        _searchTerm = string.Empty;
+        _selectedRole = string.Empty;
+        FilterUsers();
+    }
+
+    private void StartEdit(User user)
+    {
+        editingUserId = user.Id;
+        updateUser = new User
+        {
+            Id = user.Id,
+            Email = user.Email,
+            Role = user.Role
+        };
+    }
+
+    private void CancelEdit()
+    {
+        editingUserId = null;
+        updateUser = new();
+    }
+
+    private async Task UpdateUser()
+    {
+        try
+        {
+            await UserService.UpdateUserRoleAsync(updateUser.Id, (Role)updateUser.Role);
+            editingUserId = null;
+            updateUser = new();
+            await LoadUsers();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating user: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteUser(int id)
+    {
+        try
+        {
+            await UserService.DeleteUserAsync(id);
+            await LoadUsers();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting user: {ex.Message}");
+        }
+    }
+}
+
+<style>
+    /* Page Title Section */
+    .page-title-section {
+        text-align: center;
+        padding: 2rem 0 1rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .page-subtitle {
+        font-size: 1.2rem;
+        color: #6c757d;
+        font-weight: 500;
+        margin: 0;
+    }
+
+    /* Search Section */
+    .search-filter-section {
+        margin-bottom: 2rem;
+    }
+
+    .search-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 20px;
+        color: white;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .search-card .card-body {
+        padding: 2rem;
+    }
+
+    .search-input {
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 12px 16px;
+        backdrop-filter: blur(10px);
+    }
+
+    .search-input::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .search-input:focus {
+        border-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .search-input option {
+        background: #2c3e50;
+        color: white;
+    }
+
+    .btn-clear {
+        background: linear-gradient(45deg, #868e96, #6c757d);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        padding: 12px 16px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-clear:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(134, 142, 150, 0.4);
+        color: white;
+    }
+
+    .results-badge {
+        background: linear-gradient(45deg, #43e97b, #38f9d7);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    /* User Cards */
+    .user-card {
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        background: white;
+    }
+
+    .user-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .user-info {
+        padding: 2rem 1.5rem;
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        text-align: center;
+    }
+
+    .user-avatar {
+        font-size: 4rem;
+        color: #667eea;
+        margin-bottom: 1rem;
+    }
+
+    .user-email {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        word-break: break-word;
+    }
+
+    .role-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: inline-block;
+    }
+
+    .role-badge.role-0 {
+        background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        color: white;
+    }
+
+    .role-badge.role-1 {
+        background: linear-gradient(45deg, #f093fb, #f5576c);
+        color: white;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        display: flex;
+        gap: 10px;
+        justify-content: space-between;
+    }
+
+    .btn-edit {
+        background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        color: white;
+        border-radius: 20px;
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4);
+        color: white;
+    }
+
+    .btn-delete {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        color: white;
+        border-radius: 20px;
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-delete:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+        color: white;
+    }
+
+    .btn-protected {
+        background: linear-gradient(45deg, #868e96, #6c757d);
+        color: white;
+        border-radius: 20px;
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: none;
+        cursor: not-allowed;
+    }
+
+    /* Edit Form */
+    .edit-form {
+        background: linear-gradient(145deg, #667eea, #764ba2);
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-top: 1rem;
+    }
+
+    .edit-form .form-control {
+        border-radius: 10px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        margin-bottom: 1rem;
+    }
+
+    .edit-form .form-control:focus {
+        border-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .edit-form .form-control option {
+        background: #2c3e50;
+        color: white;
+    }
+
+    .edit-form label {
+        color: white;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-save {
+        background: linear-gradient(45deg, #51cf66, #40c057);
+        color: white;
+        border-radius: 15px;
+        padding: 8px 20px;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(81, 207, 102, 0.4);
+        color: white;
+    }
+
+    .btn-cancel {
+        background: linear-gradient(45deg, #868e96, #6c757d);
+        color: white;
+        border-radius: 15px;
+        padding: 8px 20px;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(134, 142, 150, 0.4);
+        color: white;
+    }
+
+    /* No Results/Users Messages */
+    .no-results {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border-radius: 20px;
+        font-size: 1.2rem;
+    }
+
+    .no-users {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 20px;
+        font-size: 1.2rem;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 3rem;
+        position: relative;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 2px;
+    }
+</style> 
