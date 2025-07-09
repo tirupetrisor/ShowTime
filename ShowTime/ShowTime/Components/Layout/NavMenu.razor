@@ -32,6 +32,16 @@
                 <span class="nav-text">Festivals</span>
             </NavLink>
 
+            <NavLink class="nav-link" href="/bookings">
+                <span class="nav-icon">🎫</span>
+                <span class="nav-text">Bookings</span>
+            </NavLink>
+
+            <NavLink class="nav-link" href="/tickets">
+                <span class="nav-icon">🎟️</span>
+                <span class="nav-text">Tickets</span>
+            </NavLink>
+
             <AuthorizeView Roles="Administrator">
                 <Authorized>
                     <NavLink class="nav-link" href="/Users">
@@ -60,7 +70,12 @@
 </nav>
 
 <style>
-    /* Removed nav-user-info and nav-logout specific styles */
+    /* Ensure navbar height doesn't change */
+    .modern-navbar {
+        position: relative;
+        z-index: 1000;
+        overflow: visible !important;
+    }
 </style>
 
 <script>
@@ -72,10 +87,9 @@
     // Close mobile menu when clicking outside
     document.addEventListener('click', function(event) {
         const navbar = document.querySelector('.modern-navbar');
-        const mobileToggle = document.querySelector('.mobile-toggle');
         const navbarNav = document.getElementById('navbarNav');
         
-        if (!navbar.contains(event.target) && navbarNav.classList.contains('active')) {
+        if (!navbar.contains(event.target) && navbarNav && navbarNav.classList.contains('active')) {
             navbarNav.classList.remove('active');
         }
     });

@@ -15,14 +15,7 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
     {
         builder.ToTable("Bookings");
 
-        builder.HasKey(b => new { b.FestivalId, b.UserId });
-
-        builder.Property(b => b.Type)
-            .IsRequired()
-            .HasMaxLength(50);
-
-        builder.Property(b => b.Price)
-            .IsRequired();
+        builder.HasKey(b => b.Id);
 
         builder.HasOne(b => b.Festival)
             .WithMany(f => f.Bookings)
@@ -31,5 +24,10 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         builder.HasOne(b => b.User)
             .WithMany(u => u.Bookings)
             .HasForeignKey(b => b.UserId);
+
+        builder.HasOne(b => b.Ticket)
+            .WithMany(t => t.Bookings)
+            .HasForeignKey(b => b.TicketId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

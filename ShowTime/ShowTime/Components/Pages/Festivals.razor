@@ -272,7 +272,6 @@
                 <AuthorizeView Roles="Administrator">
                     <Authorized Context="authContext">
                         <div class="add-lineup-form">
-                            <h6 class="text-primary">✨ Add Artist to Lineup</h6>
                             <EditForm Model="newLineup" OnValidSubmit="AddLineup" FormName="@($"AddLineupForm_{selectedFestival.Id}")">
                                 <DataAnnotationsValidator />
                                 <div class="row">

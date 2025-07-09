@@ -41,6 +41,12 @@ builder.Services.AddTransient<IFestivalService, FestivalService>();
 builder.Services.AddTransient<IRepository<User>, Repository<User>>();
 builder.Services.AddTransient<IUserService, UserService>();
 
+builder.Services.AddTransient<IRepository<Ticket>, Repository<Ticket>>();
+builder.Services.AddTransient<ITicketService, TicketService>();
+
+builder.Services.AddTransient<IRepository<Booking>, Repository<Booking>>();
+builder.Services.AddTransient<IBookingService, BookingService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

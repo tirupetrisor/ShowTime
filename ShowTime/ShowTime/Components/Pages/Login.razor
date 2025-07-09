@@ -22,12 +22,10 @@
 
     <div class="container">
         <div class="login-container">
-
-
             <div class="card login-card">
                 <div class="card-header">
                     <h3 class="card-title">
-                        <span class="card-icon">✨</span>
+                        <span class="card-icon">🔐</span>
                         Login to Your Account
                     </h3>
                 </div>
@@ -100,11 +98,10 @@
                     </EditForm>
 
                     <div class="form-footer">
-                        <p class="register-link">
+                        <p class="login-link">
                             Don't have an account? 
                             <a href="/register" class="link-accent">Register here</a>
                         </p>
-
                     </div>
                 </div>
             </div>
@@ -151,7 +148,8 @@
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
 
-            NavigationManager.NavigateTo("/");
+            //NavigationManager.NavigateTo("/");
+            HttpContext.Response.Redirect("/");
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -279,46 +277,7 @@
         }
     }
 
-    .page-title-section {
-        text-align: center;
-        padding: 2rem 0;
-        margin-bottom: 2rem;
-    }
 
-    .page-title {
-        font-size: 3rem;
-        font-weight: 800;
-        color: white;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 1rem;
-    }
-
-    .title-icon {
-        font-size: 3rem;
-        animation: pulse 2s infinite;
-    }
-
-    .title-text {
-        background: linear-gradient(45deg, #ffffff, #f8f9fa);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    @@keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-    }
-
-    .page-subtitle {
-        font-size: 1.3rem;
-        color: rgba(255, 255, 255, 0.9);
-        font-weight: 500;
-        margin: 0;
-    }
 
     .login-card {
         background: rgba(255, 255, 255, 0.95);
@@ -468,7 +427,7 @@
         border-top: 1px solid #e9ecef;
     }
 
-    .register-link, .forgot-password {
+    .login-link {
         color: #6c757d;
         margin: 0.5rem 0;
         font-size: 0.95rem;
@@ -486,30 +445,7 @@
         text-decoration: underline;
     }
 
-    .divider {
-        margin: 1rem 0;
-        position: relative;
-        color: #adb5bd;
-        font-size: 0.9rem;
-    }
 
-    .divider::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: #e9ecef;
-        z-index: 1;
-    }
-
-    .divider span {
-        background: white;
-        padding: 0 1rem;
-        position: relative;
-        z-index: 2;
-    }
 
     .alert {
         border-radius: 15px;

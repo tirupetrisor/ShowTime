@@ -1,0 +1,453 @@
+@page "/bookings"
+@using ShowTime.BusinessLogic.Abstractions
+@using ShowTime.BusinessLogic.Dtos
+@using ShowTime.DataAccess.Models
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject IBookingService BookingService
+@inject IFestivalService FestivalService
+@inject ITicketService TicketService
+@inject IUserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+<PageTitle>@(isAdmin ? "Manage All Bookings" : "My Bookings") - ShowTime</PageTitle>
+
+<div class="container">
+    <div class="page-title-section">
+        <h1 class="page-title">📋 Booking Management</h1>
+        <p class="page-subtitle">@(isAdmin ? "Manage all customer bookings and reservations" : "View and manage your festival bookings")</p>
+    </div>
+
+    <!-- Add New Booking Section -->
+    <div class="card add-booking-card">
+        <div class="card-body">
+            <h3 class="text-center mb-4">@(isAdmin ? "✨ Add New Booking" : "🎫 Book a Festival")</h3>
+            @if (!allFestivals.Any())
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    @(isAdmin ? "No festivals available in the system." : "No upcoming festivals available for booking at the moment.")
+                </div>
+            }
+            else
+            {
+                <EditForm Model="newBooking" OnValidSubmit="AddBooking" FormName="AddBookingForm">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-warning mb-3" />
+                    <div class="row">
+                        @if (isAdmin)
+                        {
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">👤 User</label>
+                                <select @bind="newBooking.UserId" class="form-control form-control-modern">
+                                    <option value="0">Select User</option>
+                                    @foreach (var user in allUsers)
+                                    {
+                                        <option value="@user.Id">@user.Email</option>
+                                    }
+                                </select>
+                                <ValidationMessage For="@(() => newBooking.UserId)" class="text-warning fw-bold" />
+                            </div>
+                        }
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">🎪 Festival</label>
+                            <select value="@newBooking.FestivalId" @onchange="OnFestivalChanged" class="form-control form-control-modern">
+                                <option value="0">Select Festival</option>
+                                @foreach (var festival in allFestivals)
+                                {
+                                    <option value="@festival.Id">@festival.Name</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => newBooking.FestivalId)" class="text-warning fw-bold" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">🎟️ Ticket</label>
+                            <select @bind="newBooking.TicketId" class="form-control form-control-modern" disabled="@(newBooking.FestivalId == 0)">
+                                <option value="0">@(newBooking.FestivalId == 0 ? "Select Festival First" : "Select Ticket")</option>
+                                @foreach (var ticket in availableTickets)
+                                {
+                                    <option value="@ticket.Id">@ticket.Type - $@ticket.Price</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => newBooking.TicketId)" class="text-warning fw-bold" />
+                            @if (newBooking.FestivalId > 0 && !availableTickets.Any())
+                            {
+                                <small class="text-warning">No tickets available for this festival.</small>
+                            }
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-add btn-modern w-100" disabled="@(!CanSubmitBooking())">
+                                @if (!CanSubmitBooking())
+                                {
+                                    <i class="fas fa-clock"></i> <span>Select Details</span>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-plus"></i> <span>Book Now</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible">
+            <i class="fas fa-exclamation-triangle"></i> @errorMessage
+        </div>
+    }
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success alert-dismissible">
+            <i class="fas fa-check-circle"></i> @successMessage
+        </div>
+    }
+
+    <!-- Bookings Section -->
+    <h2 class="section-title">🌟 @(isAdmin ? "All Bookings" : "Your Bookings")</h2>
+
+    @if (displayBookings.Count == 0)
+    {
+        <div class="no-bookings">
+            <h4>📋 @(isAdmin ? "No bookings in the system yet!" : "You don't have any bookings yet!")</h4>
+            <p>@(isAdmin ? "Bookings will appear here as customers make reservations" : "Start by booking a festival above")</p>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var booking in displayBookings)
+            {
+                <div class="col-lg-6 col-md-6">
+                    <div class="card booking-card">
+                        <div class="booking-header">
+                            <h5 class="booking-festival">🎪 @booking.FestivalName</h5>
+                            <span class="booking-ticket-badge">@booking.TicketType</span>
+                        </div>
+                        <div class="booking-info">
+                            <div class="booking-details">
+                                <p class="booking-price">💰 Price: <strong>$@booking.TicketPrice</strong></p>
+                                <p class="booking-date">📅 Event Date: @booking.FestivalStartDate.ToString("MMM dd, yyyy")</p>
+                                @if (isAdmin)
+                                {
+                                    <p class="booking-user">👤 Customer: @booking.UserEmail</p>
+                                }
+                                @if (booking.FestivalStartDate <= DateTime.Now)
+                                {
+                                    <span class="badge bg-secondary">Past Event</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Upcoming</span>
+                                }
+                            </div>
+                            
+                            <!-- Edit Form - ONLY FOR ADMINISTRATORS -->
+                            @if (isAdmin && editingBookingId == booking.Id)
+                            {
+                                <div class="edit-form">
+                                    <h6 class="text-white mb-3">✏️ Edit Booking</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label">🎟️ Change Ticket Type</label>
+                                        <select @bind="selectedTicketIdForEdit" class="form-control">
+                                            @foreach (var ticket in availableTicketsForEdit)
+                                            {
+                                                <option value="@ticket.Id" selected="@(ticket.Id == booking.TicketId)">@ticket.Type - $@ticket.Price</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-save" @onclick="UpdateBooking">
+                                            <i class="fas fa-check"></i> Save
+                                        </button>
+                                        <button class="btn btn-cancel" @onclick="CancelEdit">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="action-buttons">
+                            @if (isAdmin)
+                            {
+                                @if (editingBookingId != booking.Id)
+                                {
+                                    <button class="btn btn-edit" @onclick="() => StartEdit(booking)">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                }
+                                <button class="btn btn-delete" @onclick="() => DeleteBooking(booking.Id)">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            }
+                            else
+                            {
+                                @if (booking.FestivalStartDate > DateTime.Now)
+                                {
+                                    <button class="btn btn-delete" @onclick="() => DeleteBooking(booking.Id)">
+                                        <i class="fas fa-times"></i> Cancel Booking
+                                    </button>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool isAdmin = false;
+    private int currentUserId = 0;
+    
+    private IList<BookingGetDto> displayBookings = new List<BookingGetDto>();
+    private IList<FestivalGetDto> allFestivals = new List<FestivalGetDto>();
+    private IList<TicketGetDto> availableTickets = new List<TicketGetDto>();
+    private IList<TicketGetDto> availableTicketsForEdit = new List<TicketGetDto>();
+    private IList<User> allUsers = new List<User>();
+    
+    private int? editingBookingId = null;
+    private BookingCreateDto newBooking = new();
+    private int selectedTicketIdForEdit = 0;
+    
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckUserRole();
+        await LoadData();
+    }
+    
+    private async Task CheckUserRole()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            isAdmin = user.IsInRole("Administrator");
+            
+            // Get current user ID from email
+            var userEmail = user.FindFirst(ClaimTypes.Email)?.Value;
+            if (!string.IsNullOrEmpty(userEmail))
+            {
+                var currentUser = await UserService.GetUserByEmailAsync(userEmail);
+                if (currentUser != null)
+                {
+                    currentUserId = currentUser.Id;
+                    
+                    // For regular users, set the UserId immediately so validation passes
+                    if (!isAdmin)
+                    {
+                        newBooking.UserId = currentUserId;
+                    }
+                }
+            }
+        }
+    }
+    
+    private async Task LoadData()
+    {
+        try
+        {
+            allFestivals = (await FestivalService.GetAllFestivalsAsync()).ToList();
+            
+            if (isAdmin)
+            {
+                displayBookings = await BookingService.GetAllBookingsAsync();
+                allUsers = await UserService.GetAllUsersAsync();
+            }
+            else
+            {
+                if (currentUserId > 0)
+                {
+                    displayBookings = await BookingService.GetBookingsByUserIdAsync(currentUserId);
+                }
+                // For regular users, only show upcoming festivals
+                allFestivals = allFestivals.Where(f => f.StartDate > DateTime.Now).ToList();
+            }
+            
+            ClearMessages();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+        }
+    }
+
+    private async Task OnFestivalChanged(ChangeEventArgs e)
+    {
+        try
+        {
+            // Update the binding manually
+            if (int.TryParse(e.Value?.ToString(), out int festivalId))
+            {
+                newBooking.FestivalId = festivalId;
+            }
+            else
+            {
+                newBooking.FestivalId = 0;
+            }
+            
+            availableTickets.Clear();
+            newBooking.TicketId = 0;
+            
+            if (newBooking.FestivalId != 0)
+            {
+                availableTickets = (await TicketService.GetTicketsByFestivalIdAsync(newBooking.FestivalId)).ToList();
+            }
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading tickets: {ex.Message}";
+        }
+    }
+    
+    private async Task AddBooking()
+    {
+        try
+        {
+            ClearMessages();
+            
+            // Ensure UserId is set for regular users
+            if (!isAdmin)
+            {
+                newBooking.UserId = currentUserId;
+                
+                // Additional validation for regular users
+                if (currentUserId <= 0)
+                {
+                    errorMessage = "User identification error. Please refresh the page and try again.";
+                    return;
+                }
+            }
+            
+            // Validate required fields
+            if (newBooking.FestivalId <= 0)
+            {
+                errorMessage = "Please select a festival.";
+                return;
+            }
+            
+            if (newBooking.TicketId <= 0)
+            {
+                errorMessage = "Please select a ticket type.";
+                return;
+            }
+            
+            if (newBooking.UserId <= 0)
+            {
+                errorMessage = "User selection is required.";
+                return;
+            }
+            
+            await BookingService.CreateBookingAsync(newBooking);
+            successMessage = "Booking created successfully!";
+            
+            // Reset form for next booking
+            var savedUserId = newBooking.UserId; // Keep the user ID for regular users
+            newBooking = new BookingCreateDto();
+            
+            // Set UserId again for regular users
+            if (!isAdmin)
+            {
+                newBooking.UserId = savedUserId;
+            }
+            
+            availableTickets.Clear();
+            
+            await LoadData();
+        }
+        catch (InvalidOperationException ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (KeyNotFoundException ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error creating booking: {ex.Message}";
+        }
+    }
+    
+    private async Task StartEdit(BookingGetDto booking)
+    {
+        try
+        {
+            editingBookingId = booking.Id;
+            selectedTicketIdForEdit = booking.TicketId;
+            availableTicketsForEdit = (await TicketService.GetTicketsByFestivalIdAsync(booking.FestivalId)).ToList();
+            ClearMessages();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading tickets for edit: {ex.Message}";
+        }
+    }
+    
+    private async Task UpdateBooking()
+    {
+        if (editingBookingId.HasValue)
+        {
+            try
+            {
+                await BookingService.UpdateBookingAsync(editingBookingId.Value, selectedTicketIdForEdit);
+                successMessage = "Booking updated successfully!";
+                CancelEdit();
+                await LoadData();
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error updating booking: {ex.Message}";
+            }
+        }
+    }
+    
+    private void CancelEdit()
+    {
+        editingBookingId = null;
+        selectedTicketIdForEdit = 0;
+        ClearMessages();
+    }
+    
+    private async Task DeleteBooking(int bookingId)
+    {
+        try
+        {
+            await BookingService.DeleteBookingAsync(bookingId);
+            successMessage = "Booking deleted successfully!";
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting booking: {ex.Message}";
+        }
+    }
+    
+    private void ClearMessages()
+    {
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+    }
+
+    private bool CanSubmitBooking()
+    {
+        return newBooking.FestivalId > 0 && newBooking.TicketId > 0 && newBooking.UserId > 0;
+    }
+} 

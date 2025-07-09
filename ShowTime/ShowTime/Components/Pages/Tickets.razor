@@ -1,0 +1,320 @@
+@page "/tickets"
+@using ShowTime.BusinessLogic.Abstractions
+@using ShowTime.BusinessLogic.Dtos
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject ITicketService TicketService
+@inject IFestivalService FestivalService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+<PageTitle>@(isAdmin ? "Manage Tickets" : "Available Tickets") - ShowTime</PageTitle>
+
+<div class="container">
+    <div class="page-title-section">
+        <h1 class="page-title">🎫 Ticket Management</h1>
+        <p class="page-subtitle">@(isAdmin ? "Manage all festival tickets and pricing" : "Browse available tickets for upcoming festivals")</p>
+    </div>
+
+    <!-- Add New Ticket Section - ONLY FOR ADMINISTRATORS -->
+    <AuthorizeView Roles="Administrator">
+        <Authorized Context="authContext">
+            <div class="card add-ticket-card">
+                <div class="card-body">
+                    <h3 class="text-center mb-4">✨ Add New Ticket</h3>
+                    <EditForm Model="newTicket" OnValidSubmit="AddTicket" FormName="AddTicketForm">
+                        <DataAnnotationsValidator />
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">🎪 Festival</label>
+                                <select @bind="newTicket.FestivalId" class="form-control form-control-modern">
+                                    <option value="0">Select Festival</option>
+                                    @foreach (var festival in allFestivals)
+                                    {
+                                        <option value="@festival.Id">@festival.Name</option>
+                                    }
+                                </select>
+                                <ValidationMessage For="@(() => newTicket.FestivalId)" class="text-warning fw-bold" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">🎟️ Ticket Type</label>
+                                <InputText @bind-Value="newTicket.Type" class="form-control form-control-modern" placeholder="e.g., VIP, General, Early Bird"/>
+                                <ValidationMessage For="@(() => newTicket.Type)" class="text-warning fw-bold" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">💰 Price ($)</label>
+                                <InputNumber @bind-Value="newTicket.Price" step="0.01" class="form-control form-control-modern" placeholder="0.00"/>
+                                <ValidationMessage For="@(() => newTicket.Price)" class="text-warning fw-bold" />
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-add btn-modern">
+                                <i class="fas fa-plus"></i> Add Ticket
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </Authorized>
+    </AuthorizeView>
+
+    <!-- Success/Error Messages -->
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible">
+            <i class="fas fa-exclamation-triangle"></i> @errorMessage
+        </div>
+    }
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success alert-dismissible">
+            <i class="fas fa-check-circle"></i> @successMessage
+        </div>
+    }
+
+    <!-- Tickets Section -->
+    <h2 class="section-title">🌟 @(isAdmin ? "All Tickets" : "Available Tickets")</h2>
+
+    @if (displayTickets.Count == 0)
+    {
+        <div class="no-tickets">
+            <h4>🎟️ @(isAdmin ? "No tickets in the system yet!" : "No tickets available at the moment!")</h4>
+            <AuthorizeView Roles="Administrator">
+                <Authorized>
+                    <p>Start by adding your first ticket above</p>
+                </Authorized>
+                <NotAuthorized>
+                    <p>Check back later for available tickets</p>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var ticket in displayTickets)
+            {
+                var festival = allFestivals.FirstOrDefault(f => f.Id == ticket.FestivalId);
+                <div class="col-lg-4 col-md-6">
+                    <div class="card ticket-card">
+                        <div class="ticket-header">
+                            <h5 class="ticket-festival">🎪 @ticket.FestivalName</h5>
+                            <span class="ticket-type-badge">@ticket.Type</span>
+                        </div>
+                        <div class="ticket-info">
+                            <div class="ticket-price">
+                                <span class="price-label">💰 Price:</span>
+                                <span class="price-amount">$@ticket.Price</span>
+                            </div>
+                            @if (festival != null && !isAdmin)
+                            {
+                                <div class="ticket-details">
+                                    <p class="festival-date">📅 @festival.StartDate.ToString("MMM dd, yyyy")</p>
+                                    <p class="festival-location">📍 @festival.Location</p>
+                                </div>
+                            }
+                            
+                            <!-- Edit Form - ONLY FOR ADMINISTRATORS -->
+                            <AuthorizeView Roles="Administrator">
+                                <Authorized Context="authContext">
+                                    @if (editingTicketId == ticket.Id)
+                                    {
+                                        <div class="edit-form">
+                                            <h6 class="text-white mb-3">✏️ Edit Ticket</h6>
+                                            <EditForm Model="updateTicket" OnValidSubmit="UpdateTicket" FormName="@($"UpdateTicketForm_{ticket.Id}")">
+                                                <DataAnnotationsValidator />
+                                                <div class="mb-3">
+                                                    <label class="form-label">🎟️ Type</label>
+                                                    <InputText @bind-Value="updateTicket.Type" class="form-control"/>
+                                                    <ValidationMessage For="@(() => updateTicket.Type)" class="text-warning fw-bold" />
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">💰 Price ($)</label>
+                                                    <InputNumber @bind-Value="updateTicket.Price" step="0.01" class="form-control"/>
+                                                    <ValidationMessage For="@(() => updateTicket.Price)" class="text-warning fw-bold" />
+                                                </div>
+                                                <div class="d-flex gap-2">
+                                                    <button type="submit" class="btn btn-save">
+                                                        <i class="fas fa-check"></i> Save
+                                                    </button>
+                                                    <button type="button" class="btn btn-cancel" @onclick="CancelEdit">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </div>
+                                            </EditForm>
+                                        </div>
+                                    }
+                                </Authorized>
+                            </AuthorizeView>
+                        </div>
+                        
+                        <!-- Action Buttons - ROLE-BASED -->
+                        <div class="action-buttons">
+                            <AuthorizeView Roles="Administrator">
+                                <Authorized Context="authContext">
+                                    @if (editingTicketId != ticket.Id)
+                                    {
+                                        <button class="btn btn-edit" @onclick="() => StartEdit(ticket)">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                    }
+                                    <button class="btn btn-delete" @onclick="async () => await DeleteTicket(ticket.Id)">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </Authorized>
+                            </AuthorizeView>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool isAdmin = false;
+    
+    private IList<TicketGetDto> displayTickets = new List<TicketGetDto>();
+    private IList<FestivalGetDto> allFestivals = new List<FestivalGetDto>();
+    
+    private int? editingTicketId = null;
+    private TicketCreateDto newTicket = new();
+    private TicketUpdateDto updateTicket = new();
+    
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckUserRole();
+        await LoadData();
+    }
+    
+    private async Task CheckUserRole()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            isAdmin = user.IsInRole("Administrator");
+        }
+    }
+    
+    private async Task LoadData()
+    {
+        try
+        {
+            allFestivals = (await FestivalService.GetAllFestivalsAsync()).ToList();
+            var allTickets = (await TicketService.GetAllTicketsAsync()).ToList();
+            
+            if (isAdmin)
+            {
+                displayTickets = allTickets;
+            }
+            else
+            {
+                // For regular users, only show tickets for upcoming festivals
+                var upcomingFestivalIds = allFestivals
+                    .Where(f => f.StartDate > DateTime.Now)
+                    .Select(f => f.Id)
+                    .ToHashSet();
+                
+                displayTickets = allTickets
+                    .Where(t => upcomingFestivalIds.Contains(t.FestivalId))
+                    .ToList();
+            }
+            
+            ClearMessages();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading tickets: {ex.Message}";
+        }
+    }
+    
+    private async Task AddTicket()
+    {
+        try
+        {
+            ClearMessages();
+            
+            if (newTicket.FestivalId <= 0)
+            {
+                errorMessage = "Please select a festival.";
+                return;
+            }
+            
+            await TicketService.CreateTicketAsync(newTicket);
+            successMessage = "Ticket added successfully!";
+            
+            // Reset form
+            newTicket = new TicketCreateDto();
+            
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error adding ticket: {ex.Message}";
+        }
+    }
+    
+    private void StartEdit(TicketGetDto ticket)
+    {
+        editingTicketId = ticket.Id;
+        updateTicket = new TicketUpdateDto
+        {
+            Type = ticket.Type,
+            Price = ticket.Price
+        };
+        ClearMessages();
+    }
+    
+    private async Task UpdateTicket()
+    {
+        if (editingTicketId.HasValue)
+        {
+            try
+            {
+                await TicketService.UpdateTicketAsync(editingTicketId.Value, updateTicket);
+                successMessage = "Ticket updated successfully!";
+                CancelEdit();
+                await LoadData();
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error updating ticket: {ex.Message}";
+            }
+        }
+    }
+    
+    private void CancelEdit()
+    {
+        editingTicketId = null;
+        updateTicket = new TicketUpdateDto();
+        ClearMessages();
+    }
+    
+    private async Task DeleteTicket(int ticketId)
+    {
+        try
+        {
+            await TicketService.DeleteTicketAsync(ticketId);
+            successMessage = "Ticket deleted successfully!";
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting ticket: {ex.Message}";
+        }
+    }
+    
+    private void ClearMessages()
+    {
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+    }
+} 

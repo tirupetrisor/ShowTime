@@ -204,4 +204,18 @@ public class UserService(IRepository<User> userRepository) : IUserService
             throw;
         }
     }
+
+    public async Task<User?> GetUserByEmailAsync(string email)
+    {
+        try
+        {
+            var users = await userRepository.GetAllAsync();
+            return users.FirstOrDefault(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting user by email: {ex.Message}");
+            throw;
+        }
+    }
 }

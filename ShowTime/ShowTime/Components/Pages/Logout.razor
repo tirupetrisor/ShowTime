@@ -62,6 +62,7 @@
 </div>
 
 @code {
+
     protected override async Task OnInitializedAsync()
     {
         await PerformLogout();
@@ -75,6 +76,7 @@
             if (httpContext != null)
             {
                 await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
             }
         }
         catch (Exception ex)

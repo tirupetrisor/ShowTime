@@ -45,5 +45,9 @@ public class FestivalConfiguration : IEntityTypeConfiguration<Festival>
         builder.HasMany(f => f.Bookings)
             .WithOne(b => b.Festival)
             .HasForeignKey(b => b.FestivalId);
+
+        builder.HasMany(f => f.Tickets)
+            .WithOne(t => t.Festival)
+            .HasForeignKey(t => t.FestivalId);
     }
 }

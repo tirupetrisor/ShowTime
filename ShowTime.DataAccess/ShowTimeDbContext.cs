@@ -19,6 +19,7 @@ public class ShowTimeDbContext:DbContext
     public DbSet<Lineup> Lineups { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Booking> Bookings { get; set; }
+    public DbSet<Ticket> Tickets { get; set; }  // Nou DbSet pentru Ticket
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,5 +30,6 @@ public class ShowTimeDbContext:DbContext
         new LineupConfiguration().Configure(modelBuilder.Entity<Lineup>());
         new UserConfiguration().Configure(modelBuilder.Entity<User>());
         new BookingConfiguration().Configure(modelBuilder.Entity<Booking>());
+        new TicketConfiguration().Configure(modelBuilder.Entity<Ticket>());  // Noua configurație
     }
 }
