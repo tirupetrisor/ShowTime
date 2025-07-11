@@ -1,0 +1,59 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+
+<div class="edit-form">
+    <h6 class="text-white mb-3">✏️ Edit Artist</h6>
+    <EditForm Model="UpdateArtist" OnValidSubmit="HandleValidSubmit" FormName="@FormName">
+        <DataAnnotationsValidator />
+        <div class="mb-3">
+            <label class="form-label">🎤 Name</label>
+            <InputText @bind-Value="UpdateArtist.Name" class="form-control"/>
+            <ValidationMessage For="@(() => UpdateArtist.Name)" class="text-warning fw-bold" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">🎵 Genre</label>
+            <InputText @bind-Value="UpdateArtist.Genre" class="form-control"/>
+            <ValidationMessage For="@(() => UpdateArtist.Genre)" class="text-warning fw-bold" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">🖼️ Image URL</label>
+            <InputText @bind-Value="UpdateArtist.Image" class="form-control"/>
+            <ValidationMessage For="@(() => UpdateArtist.Image)" class="text-warning fw-bold" />
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-save">
+                <i class="fas fa-check"></i> Save
+            </button>
+            <button type="button" class="btn btn-cancel" @onclick="OnCancel">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public ArtistGetDto Artist { get; set; } = new();
+    [Parameter] public EventCallback<ArtistUpdateDto> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public string FormName { get; set; } = "EditArtistForm";
+    
+    private ArtistUpdateDto UpdateArtist { get; set; } = new();
+    
+    protected override void OnParametersSet()
+    {
+        UpdateArtist = new ArtistUpdateDto
+        {
+            Id = Artist.Id,
+            Name = Artist.Name,
+            Genre = Artist.Genre,
+            Image = Artist.Image
+        };
+    }
+    
+    private async Task HandleValidSubmit()
+    {
+        await OnSave.InvokeAsync(UpdateArtist);
+    }
+} 

@@ -1,0 +1,140 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+
+<div class="col-lg-4 col-md-6 mb-4">
+    <div class="booking-card">
+        <div class="booking-header">
+            <div class="festival-info">
+                <h5 class="booking-festival">@Booking.FestivalName</h5>
+                <span class="booking-date">@Booking.FestivalStartDate.ToString("MMM dd, yyyy")</span>
+            </div>
+            <div class="booking-badge">
+                <i class="fa-solid fa-ticket"></i>
+            </div>
+        </div>
+        
+        <div class="booking-content">
+            @if (IsEditing)
+            {
+                <!-- Edit Mode -->
+                <BookingEditForm Booking="@Booking" 
+                                AvailableTickets="@AvailableTickets" 
+                                OnSave="OnSaveEdit" 
+                                OnCancel="OnCancelEdit" 
+                                FormName="@($"EditBookingForm_{Booking.Id}")" />
+            }
+            else
+            {
+                <!-- Display Mode -->
+                <div class="booking-details">
+                    @if (IsAdmin)
+                    {
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div class="detail-info">
+                                <span class="detail-label">Customer</span>
+                                <span class="detail-value">@Booking.UserEmail</span>
+                            </div>
+                        </div>
+                    }
+                    
+                    <div class="detail-item">
+                        <div class="detail-icon">
+                            <i class="fa-solid fa-tag"></i>
+                        </div>
+                        <div class="detail-info">
+                            <span class="detail-label">Ticket Type</span>
+                            <span class="detail-value">@Booking.TicketType</span>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item price-item">
+                        <div class="detail-icon">
+                            <i class="fa-solid fa-dollar-sign"></i>
+                        </div>
+                        <div class="detail-info">
+                            <span class="detail-label">Price</span>
+                            <span class="detail-value price-value">$@Booking.TicketPrice.ToString("F2")</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <!-- Action Buttons -->
+        <AuthorizeView>
+            <Authorized Context="authContext">
+                <div class="booking-actions">
+                    @if (CanEditBooking(authContext.User))
+                    {
+                        @if (!IsEditing)
+                        {
+                            <button class="edit-btn" @onclick="OnStartEdit" title="Edit booking">
+                                <i class="fa-solid fa-edit"></i>
+                                <span>Edit</span>
+                            </button>
+                        }
+                    }
+                    
+                    <!-- Delete button - Admin can delete any, Users can delete their own -->
+                    @if (CanDeleteBooking(authContext.User))
+                    {
+                        <button class="delete-btn" @onclick="OnDelete" title="Delete booking">
+                            <i class="fa-solid fa-trash"></i>
+                            <span>Delete</span>
+                        </button>
+                    }
+                </div>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+</div>
+
+@code {
+    [Parameter] public BookingGetDto Booking { get; set; } = new();
+    [Parameter] public bool IsAdmin { get; set; } = false;
+    [Parameter] public bool IsEditing { get; set; } = false;
+    [Parameter] public IList<TicketGetDto> AvailableTickets { get; set; } = new List<TicketGetDto>();
+    [Parameter] public EventCallback OnStartEdit { get; set; }
+    [Parameter] public EventCallback<int> OnSaveEdit { get; set; }
+    [Parameter] public EventCallback OnCancelEdit { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public int? CurrentUserId { get; set; }
+    
+    private bool CanEditBooking(ClaimsPrincipal user)
+    {
+        // Admin can edit any booking
+        if (IsAdmin)
+            return true;
+            
+        // Regular users can only edit their own bookings
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(userIdClaim, out int userId))
+        {
+            return userId == Booking.UserId;
+        }
+        
+        return false;
+    }
+    
+    private bool CanDeleteBooking(ClaimsPrincipal user)
+    {
+        // Admin can delete any booking
+        if (IsAdmin)
+            return true;
+            
+        // Regular users can only delete their own bookings
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(userIdClaim, out int userId))
+        {
+            return userId == Booking.UserId;
+        }
+        
+        return false;
+    }
+} 

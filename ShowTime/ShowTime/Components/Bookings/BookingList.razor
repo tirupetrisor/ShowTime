@@ -1,0 +1,53 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Authorization
+
+<h2 class="section-title">📋 @(IsAdmin ? "All Bookings" : "My Bookings")</h2>
+
+@if (FilteredBookings.Count == 0 && DisplayBookings.Count > 0)
+{
+    <NoResults Icon="🔍" Title="No bookings found!" Message="Try adjusting your search criteria or clear the filters" />
+}
+else if (DisplayBookings.Count == 0)
+{
+    <NoResults Icon="📋" Title="No bookings yet!" CssClass="no-bookings">
+        <p>@(IsAdmin ? "No bookings have been made yet." : "You haven't made any bookings yet.")</p>
+    </NoResults>
+}
+else
+{
+    <div class="row">
+        @foreach (var booking in FilteredBookings)
+        {
+            <BookingCard Booking="@booking" 
+                        IsAdmin="@IsAdmin"
+                        IsEditing="@(EditingBookingId == booking.Id)"
+                        AvailableTickets="@GetAvailableTicketsForBooking(booking)"
+                        OnStartEdit="@(() => OnStartEdit.InvokeAsync(booking))"
+                        OnSaveEdit="@((newTicketId) => OnSaveEdit.InvokeAsync((booking.Id, newTicketId)))"
+                        OnCancelEdit="@(() => OnCancelEdit.InvokeAsync())"
+                        OnDelete="@(() => OnDeleteBooking.InvokeAsync(booking.Id))" />
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public IList<BookingGetDto> DisplayBookings { get; set; } = new List<BookingGetDto>();
+    [Parameter] public IList<BookingGetDto> FilteredBookings { get; set; } = new List<BookingGetDto>();
+    [Parameter] public bool IsAdmin { get; set; } = false;
+    [Parameter] public int? EditingBookingId { get; set; }
+    [Parameter] public Dictionary<int, IList<TicketGetDto>> FestivalTickets { get; set; } = new Dictionary<int, IList<TicketGetDto>>();
+    [Parameter] public EventCallback<BookingGetDto> OnStartEdit { get; set; }
+    [Parameter] public EventCallback<(int bookingId, int newTicketId)> OnSaveEdit { get; set; }
+    [Parameter] public EventCallback OnCancelEdit { get; set; }
+    [Parameter] public EventCallback<int> OnDeleteBooking { get; set; }
+    
+    private IList<TicketGetDto> GetAvailableTicketsForBooking(BookingGetDto booking)
+    {
+        if (FestivalTickets.ContainsKey(booking.FestivalId))
+        {
+            return FestivalTickets[booking.FestivalId];
+        }
+        return new List<TicketGetDto>();
+    }
+} 

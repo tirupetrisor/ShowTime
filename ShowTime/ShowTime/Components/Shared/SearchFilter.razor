@@ -1,0 +1,33 @@
+@using Microsoft.AspNetCore.Components
+
+<div class="search-filter-section mb-4">
+    <div class="card search-card">
+        <div class="card-body">
+            <h5 class="text-center mb-3">🔍 Search & Filter @Title</h5>
+            <div class="row g-3">
+                @ChildContent
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-clear w-100" @onclick="OnClearFilters">
+                        🗑️ Clear
+                    </button>
+                </div>
+            </div>
+            @if (ShowResults)
+            {
+                <div class="mt-3 text-center">
+                    <span class="badge results-badge">
+                        @ResultsMessage
+                    </span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public EventCallback OnClearFilters { get; set; }
+    [Parameter] public bool ShowResults { get; set; } = false;
+    [Parameter] public string ResultsMessage { get; set; } = "";
+} 

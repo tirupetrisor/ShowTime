@@ -1,0 +1,18 @@
+@using Microsoft.AspNetCore.Components
+
+<div class="@CssClass">
+    <h4>@Icon @Title</h4>
+    <p>@Message</p>
+    @if (ChildContent != null)
+    {
+        @ChildContent
+    }
+</div>
+
+@code {
+    [Parameter] public string Icon { get; set; } = "🔍";
+    [Parameter] public string Title { get; set; } = "No results found!";
+    [Parameter] public string Message { get; set; } = "Try adjusting your search criteria.";
+    [Parameter] public string CssClass { get; set; } = "no-results";
+    [Parameter] public RenderFragment ChildContent { get; set; }
+} 

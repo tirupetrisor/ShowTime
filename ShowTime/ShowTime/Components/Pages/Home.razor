@@ -1,19 +1,44 @@
 ﻿@page "/"
 
-<PageTitle>ShowTime - Music Festival Tracker</PageTitle>
+<PageTitle>ShowTime - Music Festival Management</PageTitle>
 
 <!-- Hero Section -->
 <section class="hero-section">
     <div class="container">
-        <div class="hero-content fade-in">
-            <h1 class="hero-title">
-                <span class="floating-emoji">🎵</span>ShowTime
-            </h1>
-            <p class="hero-subtitle">Your Ultimate Music Festival Tracker & Experience Manager</p>
-            <p class="lead mb-4">Discover, track, and manage your music festival adventures with cutting-edge technology and AI-powered insights.</p>
-            <a href="/Artists" class="btn cta-button pulse">
-                🎤 Explore Artists
-            </a>
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1 class="hero-title">
+                        <span class="brand-emoji">🎵</span>
+                        ShowTime
+                    </h1>
+                    <p class="hero-subtitle">Your Complete Music Festival Management Platform</p>
+                    <p class="hero-description">
+                        Discover amazing festivals, manage your bookings, explore incredible artists, 
+                        and create unforgettable music experiences all in one place.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="/festivals" class="btn btn-primary btn-lg">
+                            🎪 Explore Festivals
+                        </a>
+                        <a href="/artists" class="btn btn-primary btn-lg">
+                            🎤 Browse Artists
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-image">
+                    <div class="music-graphic">
+                        <div class="music-note">🎵</div>
+                        <div class="music-note">🎶</div>
+                        <div class="music-note">🎤</div>
+                        <div class="music-note">🎸</div>
+                        <div class="music-note">🥁</div>
+                        <div class="music-note">🎺</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -21,84 +46,41 @@
 <!-- Features Section -->
 <section class="features-section">
     <div class="container">
-        <h2 class="section-title fade-in">🌟 Powerful Features</h2>
-        <p class="section-subtitle fade-in">Everything you need for the perfect festival experience</p>
+        <div class="text-center mb-5">
+            <h2 class="section-title">🌟 What You Can Do</h2>
+            <p class="section-subtitle">Everything you need for the perfect festival experience</p>
+        </div>
         
-        <div class="row">
-            <!-- Online Ticketing -->
+        <div class="row g-4">
             <div class="col-lg-4 col-md-6">
-                <div class="card feature-card fade-in">
-                    <div class="feature-icon tickets">
-                        🎫
-                    </div>
-                    <h3 class="feature-title">Online Ticketing</h3>
-                    <p class="feature-description">
-                        Seamless ticket purchasing and management system. Buy, transfer, and track your festival tickets all in one place with secure digital wallet integration.
+                <div class="feature-card">
+                    <div class="feature-icon">🎪</div>
+                    <h3 class="feature-title">Discover Festivals</h3>
+                    <p class="feature-text">
+                        Browse and discover amazing music festivals from around the world. 
+                        Get detailed information about dates, locations, and lineups.
                     </p>
                 </div>
             </div>
-
-            <!-- Festivals Tracker -->
+            
             <div class="col-lg-4 col-md-6">
-                <div class="card feature-card fade-in">
-                    <div class="feature-icon festivals">
-                        🎪
-                    </div>
-                    <h3 class="feature-title">Festival Tracker</h3>
-                    <p class="feature-description">
-                        Discover and track music festivals worldwide. Get real-time updates, venue information, and personalized recommendations based on your music taste.
+                <div class="feature-card">
+                    <div class="feature-icon">🎫</div>
+                    <h3 class="feature-title">Manage Bookings</h3>
+                    <p class="feature-text">
+                        Book your tickets easily and manage all your festival reservations 
+                        in one convenient place. Edit or cancel as needed.
                     </p>
                 </div>
             </div>
-
-            <!-- Line-up Management -->
+            
             <div class="col-lg-4 col-md-6">
-                <div class="card feature-card fade-in">
-                    <div class="feature-icon lineup">
-                        🎤
-                    </div>
-                    <h3 class="feature-title">Smart Line-up</h3>
-                    <p class="feature-description">
-                        Comprehensive artist lineup management with stage schedules, set times, and personalized artist recommendations to plan your perfect festival day.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Calendar Integration -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card feature-card fade-in">
-                    <div class="feature-icon calendar">
-                        📅
-                    </div>
-                    <h3 class="feature-title">Smart Calendar</h3>
-                    <p class="feature-description">
-                        Integrated calendar system that syncs with your schedule. Never miss your favorite acts with intelligent notifications and conflict resolution.
-                    </p>
-                </div>
-            </div>
-
-            <!-- AI Budget -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card feature-card fade-in">
-                    <div class="feature-icon budget">
-                        🤖
-                    </div>
-                    <h3 class="feature-title">AI Budget Planner</h3>
-                    <p class="feature-description">
-                        Intelligent budget management powered by AI. Get cost predictions, spending insights, and personalized saving recommendations for your festival experiences.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Bonus Feature -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card feature-card fade-in">
-                    <div class="feature-icon festivals">
-                        🌍
-                    </div>
-                    <h3 class="feature-title">Social Hub</h3>
-                    <p class="feature-description">
-                        Connect with fellow festival-goers, share experiences, create groups, and discover new friends who share your musical passion.
+                <div class="feature-card">
+                    <div class="feature-icon">🎤</div>
+                    <h3 class="feature-title">Explore Artists</h3>
+                    <p class="feature-text">
+                        Discover new artists and keep track of your favorites. 
+                        See which festivals they're performing at and plan accordingly.
                     </p>
                 </div>
             </div>
@@ -106,115 +88,21 @@
     </div>
 </section>
 
-<!-- Stats Section -->
-<section class="stats-section">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-3 col-6">
-                <div class="stat-item fade-in">
-                    <span class="stat-number">1,200+</span>
-                    <span class="stat-label">Festivals Tracked</span>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-item fade-in">
-                    <span class="stat-number">50K+</span>
-                    <span class="stat-label">Artists Database</span>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-item fade-in">
-                    <span class="stat-number">25K+</span>
-                    <span class="stat-label">Happy Users</span>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-item fade-in">
-                    <span class="stat-number">98%</span>
-                    <span class="stat-label">Satisfaction Rate</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- CTA Section -->
-<section class="cta-section">
-    <div class="container">
-        <div class="fade-in">
-            <h2 class="cta-title">Ready to Transform Your Festival Experience?</h2>
-            <p class="cta-text">Join thousands of music lovers who trust ShowTime for their festival adventures</p>
-            <div class="d-flex justify-content-center gap-3 flex-wrap">
-                <a href="/Artists" class="btn cta-button">
-                    🎵 Browse Artists
-                </a>
-                <a href="#" class="btn btn-outline-light btn-lg">
-                    📖 Learn More
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<script>
-    // Add some interactive animations
-    document.addEventListener('DOMContentLoaded', function() {
-        // Smooth scrolling for buttons
-        const smoothScrollButtons = document.querySelectorAll('a[href^="#"]');
-        smoothScrollButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                }
-            });
-        });
-
-        // Add parallax effect to hero
-        window.addEventListener('scroll', function() {
-            const scrolled = window.pageYOffset;
-            const hero = document.querySelector('.hero-section');
-            if (hero) {
-                hero.style.transform = `translateY(${scrolled * 0.5}px)`;
-            }
-        });
-
-        // Animate stats on scroll
-        const observerOptions = {
-            threshold: 0.5,
-            rootMargin: '0px 0px -100px 0px'
-        };
-
-        const observer = new IntersectionObserver(function(entries) {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.animation = 'fadeIn 1s ease-in-out';
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.fade-in').forEach(el => {
-            observer.observe(el);
-        });
-    });
-</script>
 
 
 <style>
+    /* Global Styles */
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
     /* Hero Section */
     .hero-section {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 8rem 0 6rem 0;
-        text-align: center;
+        padding: 2rem 0;
         position: relative;
         overflow: hidden;
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        margin-top: -80px;
-        padding-top: calc(8rem + 80px);
     }
 
     .hero-section::before {
@@ -224,156 +112,134 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="music" patternUnits="userSpaceOnUse" width="20" height="20"><circle cx="10" cy="10" r="1.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23music)"/></svg>') repeat;
-        opacity: 0.3;
-    }
-
-    .hero-section::after {
-        content: '';
-        position: absolute;
-        bottom: -1px;
-        left: 0;
-        width: 100%;
-        height: 60px;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" fill="%23f8f9fa"/></svg>') no-repeat;
-        background-size: cover;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.08)"/><circle cx="40" cy="80" r="1" fill="rgba(255,255,255,0.06)"/></svg>');
+        opacity: 0.4;
     }
 
     .hero-content {
         position: relative;
         z-index: 2;
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 0 2rem;
     }
 
     .hero-title {
-        font-size: 5rem;
+        font-size: 4rem;
         font-weight: 800;
-        margin-bottom: 1.5rem;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        background: linear-gradient(45deg, #ffd93d, #ff6b6b, #4ecdc4);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        animation: textShine 3s ease-in-out infinite alternate;
+        margin-bottom: 1rem;
+        line-height: 1.1;
+    }
+
+    .brand-emoji {
+        font-size: 4.5rem;
+        display: inline-block;
+        margin-right: 1rem;
+        vertical-align: middle;
     }
 
     .hero-subtitle {
         font-size: 1.5rem;
-        margin-bottom: 2rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
         opacity: 0.9;
     }
 
-    .cta-button {
-        background: linear-gradient(45deg, #ff6b6b, #ffd93d);
-        color: white;
-        padding: 18px 45px;
-        border: none;
+    .hero-description {
+        font-size: 1.2rem;
+        line-height: 1.6;
+        margin-bottom: 2.5rem;
+        opacity: 0.85;
+        max-width: 500px;
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .hero-buttons .btn {
+        padding: 1rem 2rem;
+        font-weight: 600;
         border-radius: 50px;
-        font-size: 1.3rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        transition: all 0.4s ease;
-        box-shadow: 0 15px 35px rgba(255, 107, 107, 0.4);
-        position: relative;
-        overflow: hidden;
-        text-decoration: none;
-        display: inline-block;
+        transition: all 0.3s ease;
     }
 
-    .cta-button::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
+    .hero-buttons .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Hero Image */
+    .hero-image {
+        display: flex;
+        justify-content: center;
+        align-items: center;
         height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-        transition: left 0.5s;
+        position: relative;
     }
 
-    .cta-button:hover::before {
-        left: 100%;
+    .music-graphic {
+        width: 400px;
+        height: 400px;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
-    .cta-button:hover {
-        transform: translateY(-5px) scale(1.05);
-        box-shadow: 0 20px 50px rgba(255, 107, 107, 0.7);
-        color: white;
-        text-decoration: none;
+    .music-note {
+        position: absolute;
+        font-size: 3rem;
+        opacity: 0.7;
+        color: rgba(255, 255, 255, 0.8);
     }
+
+    .music-note:nth-child(1) { top: 10%; left: 50%; transform: translateX(-50%); }
+    .music-note:nth-child(2) { top: 30%; right: 15%; }
+    .music-note:nth-child(3) { top: 50%; left: 10%; }
+    .music-note:nth-child(4) { bottom: 30%; right: 20%; }
+    .music-note:nth-child(5) { bottom: 10%; left: 30%; }
+    .music-note:nth-child(6) { top: 20%; left: 20%; }
 
     /* Features Section */
     .features-section {
-        padding: 5rem 0;
-        background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 6rem 0;
+        background: #f8f9fa;
     }
 
     .section-title {
-        text-align: center;
-        font-size: 3rem;
+        font-size: 2.5rem;
         font-weight: 700;
         color: #2c3e50;
         margin-bottom: 1rem;
     }
 
     .section-subtitle {
-        text-align: center;
-        font-size: 1.2rem;
+        font-size: 1.3rem;
         color: #6c757d;
-        margin-bottom: 4rem;
+        max-width: 600px;
+        margin: 0 auto;
     }
 
     .feature-card {
         background: white;
+        padding: 2.5rem 2rem;
         border-radius: 20px;
-        padding: 2.5rem;
         text-align: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
         height: 100%;
         border: none;
-        margin-bottom: 2rem;
     }
 
     .feature-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     }
 
     .feature-icon {
-        width: 80px;
-        height: 80px;
-        margin: 0 auto 1.5rem;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        color: white;
-        position: relative;
-    }
-
-    .feature-icon.tickets {
-        background: linear-gradient(45deg, #f093fb, #f5576c);
-    }
-
-    .feature-icon.festivals {
-        background: linear-gradient(45deg, #4facfe, #00f2fe);
-    }
-
-    .feature-icon.lineup {
-        background: linear-gradient(45deg, #43e97b, #38f9d7);
-    }
-
-    .feature-icon.calendar {
-        background: linear-gradient(45deg, #fa709a, #fee140);
-    }
-
-    .feature-icon.budget {
-        background: linear-gradient(45deg, #a8edea, #fed6e3);
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        display: block;
     }
 
     .feature-title {
@@ -383,116 +249,55 @@
         margin-bottom: 1rem;
     }
 
-    .feature-description {
+    .feature-text {
         color: #6c757d;
-        font-size: 1rem;
         line-height: 1.6;
-    }
-
-    /* Stats Section */
-    .stats-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 4rem 0;
-        text-align: center;
-    }
-
-    .stat-item {
-        margin-bottom: 2rem;
-    }
-
-    .stat-number {
-        font-size: 3rem;
-        font-weight: 800;
-        display: block;
-        margin-bottom: 0.5rem;
-    }
-
-    .stat-label {
         font-size: 1.1rem;
-        opacity: 0.9;
-        text-transform: uppercase;
-        letter-spacing: 1px;
     }
 
-    /* CTA Section */
-    .cta-section {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
-        padding: 4rem 0;
-        text-align: center;
-    }
 
-    .cta-title {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-    }
-
-    .cta-text {
-        font-size: 1.2rem;
-        margin-bottom: 2rem;
-        opacity: 0.9;
-    }
-
-    .floating-emoji {
-        display: inline-block;
-        animation: float 3s ease-in-out infinite;
-        margin-right: 1rem;
-    }
 
     /* Responsive Design */
     @@media (max-width: 768px) {
-        .hero-section {
-            padding: 6rem 0 4rem 0;
-            padding-top: calc(6rem + 70px);
-            margin-top: -70px;
+        .hero-title {
+            font-size: 2.5rem;
         }
 
-        .hero-title {
-            font-size: 2.8rem;
+        .brand-emoji {
+            font-size: 3rem;
         }
-        
+
         .hero-subtitle {
             font-size: 1.2rem;
         }
-        
+
+        .hero-description {
+            font-size: 1rem;
+        }
+
+        .hero-buttons {
+            justify-content: center;
+        }
+
+        .music-graphic {
+            width: 300px;
+            height: 300px;
+        }
+
+        .music-note {
+            font-size: 2rem;
+        }
+
         .section-title {
             font-size: 2rem;
         }
-        
-        .feature-card {
-            padding: 2rem;
+
+        .section-subtitle {
+            font-size: 1.1rem;
         }
-    }
 
-    /* Animation */
-    .fade-in {
-        animation: fadeIn 1s ease-in-out;
-    }
-
-    @@keyframes fadeIn {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .pulse {
-        animation: pulse 2s infinite;
-    }
-
-    @@keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-    }
-
-    @@keyframes textShine {
-        0% { background-position: 0% 50%; }
-        100% { background-position: 100% 50%; }
-    }
-
-    @@keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-20px); }
+        .feature-card {
+            padding: 2rem 1.5rem;
+        }
     }
 </style>

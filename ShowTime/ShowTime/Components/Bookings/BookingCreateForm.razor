@@ -1,0 +1,141 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Authorization
+@using System.ComponentModel.DataAnnotations
+@using ShowTime.DataAccess.Models
+
+<div class="card add-booking-card">
+    <div class="card-body">
+        <h3 class="text-center mb-4">✨ Add New Booking</h3>
+        @if (!AllFestivals.Any())
+        {
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                @(IsAdmin ? "No festivals available in the system." : "No upcoming festivals available for booking at the moment.")
+            </div>
+        }
+        else
+        {
+            <EditForm Model="NewBooking" OnValidSubmit="HandleValidSubmit" FormName="AddBookingForm">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-warning mb-3" />
+                <div class="row">
+                    @if (IsAdmin)
+                    {
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">👤 User</label>
+                            <select @bind="NewBooking.UserId" class="form-control form-control-modern">
+                                <option value="0">Select User</option>
+                                @foreach (var user in AllUsers)
+                                {
+                                    <option value="@user.Id">@user.Email</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => NewBooking.UserId)" class="text-warning fw-bold" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">🎪 Festival</label>
+                            <select value="@NewBooking.FestivalId" @onchange="HandleFestivalChanged" class="form-control form-control-modern">
+                                <option value="0">Select Festival</option>
+                                @foreach (var festival in AllFestivals)
+                                {
+                                    <option value="@festival.Id">@festival.Name</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => NewBooking.FestivalId)" class="text-warning fw-bold" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">🎟️ Ticket</label>
+                            <select @bind="NewBooking.TicketId" class="form-control form-control-modern" disabled="@(NewBooking.FestivalId == 0)">
+                                <option value="0">@(NewBooking.FestivalId == 0 ? "Select Festival First" : "Select Ticket")</option>
+                                @foreach (var ticket in AvailableTickets)
+                                {
+                                    <option value="@ticket.Id">@ticket.Type - $@ticket.Price</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => NewBooking.TicketId)" class="text-warning fw-bold" />
+                            @if (NewBooking.FestivalId > 0 && !AvailableTickets.Any())
+                            {
+                                <small class="text-warning">No tickets available for this festival.</small>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">🎪 Festival</label>
+                            <select value="@NewBooking.FestivalId" @onchange="HandleFestivalChanged" class="form-control form-control-modern">
+                                <option value="0">Select Festival</option>
+                                @foreach (var festival in AllFestivals)
+                                {
+                                    <option value="@festival.Id">@festival.Name</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => NewBooking.FestivalId)" class="text-warning fw-bold" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">🎟️ Ticket</label>
+                            <select @bind="NewBooking.TicketId" class="form-control form-control-modern" disabled="@(NewBooking.FestivalId == 0)">
+                                <option value="0">@(NewBooking.FestivalId == 0 ? "Select Festival First" : "Select Ticket")</option>
+                                @foreach (var ticket in AvailableTickets)
+                                {
+                                    <option value="@ticket.Id">@ticket.Type - $@ticket.Price</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => NewBooking.TicketId)" class="text-warning fw-bold" />
+                            @if (NewBooking.FestivalId > 0 && !AvailableTickets.Any())
+                            {
+                                <small class="text-warning">No tickets available for this festival.</small>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-add btn-modern" disabled="@(!CanSubmitBooking())">
+                        @if (!CanSubmitBooking())
+                        {
+                            <i class="fas fa-clock"></i> <span>Select Details</span>
+                        }
+                        else
+                        {
+                            <i class="fas fa-plus"></i> <span>@(IsAdmin ? "Add Booking" : "Book Now")</span>
+                        }
+                    </button>
+                </div>
+            </EditForm>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public BookingCreateDto NewBooking { get; set; } = new();
+    [Parameter] public IList<FestivalGetDto> AllFestivals { get; set; } = new List<FestivalGetDto>();
+    [Parameter] public IList<TicketGetDto> AvailableTickets { get; set; } = new List<TicketGetDto>();
+    [Parameter] public IList<User> AllUsers { get; set; } = new List<User>();
+    [Parameter] public bool IsAdmin { get; set; } = false;
+    [Parameter] public EventCallback<BookingCreateDto> OnAddBooking { get; set; }
+    [Parameter] public EventCallback<int> OnFestivalChanged { get; set; }
+    
+    private async Task HandleValidSubmit()
+    {
+        await OnAddBooking.InvokeAsync(NewBooking);
+        // Form reset is handled by parent component
+    }
+    
+    private async Task HandleFestivalChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int festivalId))
+        {
+            NewBooking.FestivalId = festivalId;
+            await OnFestivalChanged.InvokeAsync(festivalId);
+        }
+    }
+    
+    private bool CanSubmitBooking()
+    {
+        return NewBooking.FestivalId > 0 && 
+               NewBooking.TicketId > 0 && 
+               (!IsAdmin || NewBooking.UserId > 0);
+    }
+} 

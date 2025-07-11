@@ -191,15 +191,6 @@ public class BookingService : IBookingService
                 throw new InvalidOperationException("Ticket does not belong to the specified festival.");
             }
 
-            // Verifică dacă utilizatorul are deja o rezervare pentru acest festival
-            var existingBooking = await _context.Bookings
-                .FirstOrDefaultAsync(b => b.UserId == bookingCreateDto.UserId && b.FestivalId == bookingCreateDto.FestivalId);
-
-            if (existingBooking != null)
-            {
-                throw new InvalidOperationException("User already has a booking for this festival.");
-            }
-
             // Verifică capacitatea festivalului
             var currentBookings = await _context.Bookings
                 .Where(b => b.FestivalId == bookingCreateDto.FestivalId)

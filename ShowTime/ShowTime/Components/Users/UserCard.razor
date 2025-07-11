@@ -1,0 +1,137 @@
+@using ShowTime.DataAccess.Models
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+
+<div class="col-lg-4 col-md-6">
+    <div class="user-card">
+        <div class="user-card-header">
+            <div class="user-avatar @(User.Role == (int)Role.Administrator ? "admin-avatar" : "user-avatar")">
+                @if (User.Role == (int)Role.Administrator)
+                {
+                    <i class="fas fa-crown"></i>
+                }
+                else
+                {
+                    <i class="fas fa-user"></i>
+                }
+            </div>
+            <div class="user-status @(User.Role == (int)Role.Administrator ? "admin-status" : "user-status")">
+                @(User.Role == (int)Role.Administrator ? "ADMIN" : "USER")
+            </div>
+        </div>
+        
+        <div class="user-card-body">
+            @if (IsEditing)
+            {
+                <!-- Edit Mode -->
+                <div class="edit-mode">
+                    <h6 class="edit-title">✏️ Edit User Role</h6>
+                    <EditForm Model="UpdateUser" OnValidSubmit="HandleSaveEdit" FormName="@($"UpdateUserForm_{User.Id}")">
+                        <DataAnnotationsValidator />
+                        <div class="form-group">
+                            <label class="form-label">📧 Email</label>
+                            <InputText @bind-Value="UpdateUser.Email" class="form-control" readonly/>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">👤 Role</label>
+                            <InputSelect @bind-Value="UpdateUser.Role" class="form-control">
+                                <option value="0">Administrator</option>
+                                <option value="1">Regular User</option>
+                            </InputSelect>
+                        </div>
+                        <div class="edit-actions">
+                            <button type="submit" class="btn-save">
+                                <i class="fas fa-check"></i> Save
+                            </button>
+                            <button type="button" class="btn-cancel" @onclick="HandleCancelEdit">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            }
+            else
+            {
+                <!-- Display Mode -->
+                <div class="user-info">
+                    <h5 class="user-email">@User.Email</h5>
+                    <div class="user-role">
+                        <span class="role-badge @(User.Role == (int)Role.Administrator ? "admin-badge" : "user-badge")">
+                            @(User.Role == (int)Role.Administrator ? "Administrator" : "Regular User")
+                        </span>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        @if (!IsEditing)
+        {
+            <div class="user-card-actions">
+                <button class="action-btn edit-btn" @onclick="HandleStartEdit">
+                    <i class="fas fa-edit"></i>
+                    <span>Edit Role</span>
+                </button>
+                
+                @if (User.Role != (int)Role.Administrator)
+                {
+                    <button class="action-btn delete-btn" @onclick="HandleDelete">
+                        <i class="fas fa-trash"></i>
+                        <span>Delete</span>
+                    </button>
+                }
+                else
+                {
+                    <div class="action-btn protected-btn">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Protected</span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public User User { get; set; } = new();
+    [Parameter] public bool IsEditing { get; set; } = false;
+    [Parameter] public EventCallback OnStartEdit { get; set; }
+    [Parameter] public EventCallback<User> OnSaveEdit { get; set; }
+    [Parameter] public EventCallback OnCancelEdit { get; set; }
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
+    
+    private User UpdateUser { get; set; } = new();
+    
+    protected override void OnParametersSet()
+    {
+        if (IsEditing)
+        {
+            UpdateUser = new User
+            {
+                Id = User.Id,
+                Email = User.Email,
+                Role = User.Role
+            };
+        }
+    }
+    
+    private async Task HandleStartEdit()
+    {
+        await OnStartEdit.InvokeAsync();
+    }
+    
+    private async Task HandleSaveEdit()
+    {
+        await OnSaveEdit.InvokeAsync(UpdateUser);
+    }
+    
+    private async Task HandleCancelEdit()
+    {
+        await OnCancelEdit.InvokeAsync();
+    }
+    
+    private async Task HandleDelete()
+    {
+        await OnDelete.InvokeAsync(User.Id);
+    }
+} 

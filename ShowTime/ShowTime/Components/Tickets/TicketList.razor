@@ -1,0 +1,47 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Authorization
+
+<h2 class="section-title">🌟 @(IsAdmin ? "All Tickets" : "Available Tickets")</h2>
+
+@if (DisplayTickets.Count == 0)
+{
+    <NoResults Icon="🎟️" Title="@(IsAdmin ? "No tickets in the system yet!" : "No tickets available at the moment!")" CssClass="no-tickets">
+        <AuthorizeView Roles="Administrator">
+            <Authorized>
+                <p>Start by adding your first ticket above</p>
+            </Authorized>
+            <NotAuthorized>
+                <p>Check back later for available tickets</p>
+            </NotAuthorized>
+        </AuthorizeView>
+    </NoResults>
+}
+else
+{
+    <div class="row">
+        @foreach (var ticket in DisplayTickets)
+        {
+            var festival = AllFestivals.FirstOrDefault(f => f.Id == ticket.FestivalId);
+            <TicketCard Ticket="@ticket" 
+                       Festival="@festival"
+                       IsAdmin="@IsAdmin"
+                       IsEditing="@(EditingTicketId == ticket.Id)"
+                       OnStartEdit="@(() => OnStartEdit.InvokeAsync(ticket))"
+                       OnSaveEdit="@((updateDto) => OnSaveEdit.InvokeAsync(updateDto))"
+                       OnCancelEdit="@(() => OnCancelEdit.InvokeAsync())"
+                       OnDelete="@(() => OnDeleteTicket.InvokeAsync(ticket.Id))" />
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public IList<TicketGetDto> DisplayTickets { get; set; } = new List<TicketGetDto>();
+    [Parameter] public IList<FestivalGetDto> AllFestivals { get; set; } = new List<FestivalGetDto>();
+    [Parameter] public bool IsAdmin { get; set; } = false;
+    [Parameter] public int? EditingTicketId { get; set; }
+    [Parameter] public EventCallback<TicketGetDto> OnStartEdit { get; set; }
+    [Parameter] public EventCallback<TicketUpdateDto> OnSaveEdit { get; set; }
+    [Parameter] public EventCallback OnCancelEdit { get; set; }
+    [Parameter] public EventCallback<int> OnDeleteTicket { get; set; }
+} 

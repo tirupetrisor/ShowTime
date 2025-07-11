@@ -1,0 +1,44 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Authorization
+
+<h2 class="section-title">🌟 Our Artists</h2>
+
+@if (FilteredArtists.Count == 0 && AllArtists.Count > 0)
+{
+    <NoResults Icon="🔍" Title="No artists found!" Message="Try adjusting your search criteria or clear the filters" />
+}
+else if (AllArtists.Count == 0)
+{
+    <NoResults Icon="🎭" Title="No artists registered yet!" CssClass="no-artists">
+        <AuthorizeView Roles="Administrator">
+            <Authorized Context="authContext">
+                <p>Start by adding your first artist above</p>
+            </Authorized>
+        </AuthorizeView>
+    </NoResults>
+}
+else
+{
+    <div class="row">
+        @foreach (var artist in FilteredArtists)
+        {
+            <ArtistCard Artist="@artist" 
+                       IsEditing="@(EditingArtistId == artist.Id)"
+                       OnStartEdit="@(() => OnStartEdit.InvokeAsync(artist))"
+                       OnSaveEdit="@((updateDto) => OnSaveEdit.InvokeAsync(updateDto))"
+                       OnCancelEdit="@(() => OnCancelEdit.InvokeAsync())"
+                       OnDelete="@(() => OnDeleteArtist.InvokeAsync(artist.Id))" />
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public IList<ArtistGetDto> AllArtists { get; set; } = new List<ArtistGetDto>();
+    [Parameter] public IList<ArtistGetDto> FilteredArtists { get; set; } = new List<ArtistGetDto>();
+    [Parameter] public int? EditingArtistId { get; set; }
+    [Parameter] public EventCallback<ArtistGetDto> OnStartEdit { get; set; }
+    [Parameter] public EventCallback<ArtistUpdateDto> OnSaveEdit { get; set; }
+    [Parameter] public EventCallback OnCancelEdit { get; set; }
+    [Parameter] public EventCallback<int> OnDeleteArtist { get; set; }
+} 

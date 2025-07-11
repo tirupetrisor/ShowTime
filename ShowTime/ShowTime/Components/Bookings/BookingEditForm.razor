@@ -1,0 +1,68 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+
+<div class="edit-form">
+    <h6 class="text-white mb-3">✏️ Edit Booking</h6>
+    <EditForm Model="UpdateBooking" OnValidSubmit="HandleValidSubmit" FormName="@FormName">
+        <DataAnnotationsValidator />
+        <div class="mb-3">
+            <label class="form-label">🎪 Festival</label>
+            <input type="text" class="form-control" value="@Booking.FestivalName" readonly />
+            <small class="text-muted">Festival cannot be changed</small>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">🎟️ Ticket Type</label>
+            <select @bind="UpdateBooking.TicketId" class="form-control">
+                <option value="0">Select New Ticket Type</option>
+                @foreach (var ticket in AvailableTickets)
+                {
+                    <option value="@ticket.Id">@ticket.Type - $@ticket.Price</option>
+                }
+            </select>
+            <ValidationMessage For="@(() => UpdateBooking.TicketId)" class="text-warning fw-bold" />
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-save" disabled="@(UpdateBooking.TicketId == 0)">
+                <i class="fas fa-check"></i> Save Changes
+            </button>
+            <button type="button" class="btn btn-cancel" @onclick="OnCancel">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public BookingGetDto Booking { get; set; } = new();
+    [Parameter] public IList<TicketGetDto> AvailableTickets { get; set; } = new List<TicketGetDto>();
+    [Parameter] public EventCallback<int> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public string FormName { get; set; } = "EditBookingForm";
+    
+    private UpdateBookingDto UpdateBooking { get; set; } = new();
+    
+    protected override void OnParametersSet()
+    {
+        UpdateBooking = new UpdateBookingDto
+        {
+            TicketId = Booking.TicketId
+        };
+    }
+    
+    private async Task HandleValidSubmit()
+    {
+        if (UpdateBooking.TicketId > 0)
+        {
+            await OnSave.InvokeAsync(UpdateBooking.TicketId);
+        }
+    }
+    
+    private class UpdateBookingDto
+    {
+        [Required(ErrorMessage = "Please select a ticket type")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a valid ticket type")]
+        public int TicketId { get; set; }
+    }
+} 

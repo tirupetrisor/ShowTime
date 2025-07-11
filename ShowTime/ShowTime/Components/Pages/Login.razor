@@ -139,6 +139,7 @@
 
             var claims = new List<Claim>
             {
+                new(ClaimTypes.NameIdentifier, response.UserId.ToString()),
                 new(ClaimTypes.Email, loginInfo.Email),
                 new(ClaimTypes.Role, response.Role == 0 ? "Administrator" : "User")
             };

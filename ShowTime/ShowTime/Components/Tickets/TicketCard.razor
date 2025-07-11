@@ -1,0 +1,63 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Authorization
+
+<div class="col-lg-4 col-md-6">
+    <div class="card ticket-card">
+        <div class="ticket-header">
+            <h5 class="ticket-festival">🎪 @Ticket.FestivalName</h5>
+            <span class="ticket-type-badge">@Ticket.Type</span>
+        </div>
+        <div class="ticket-info">
+            <div class="ticket-price">
+                <span class="price-label">💰 Price:</span>
+                <span class="price-amount">$@Ticket.Price</span>
+            </div>
+            @if (Festival != null && !IsAdmin)
+            {
+                <div class="ticket-details">
+                    <p class="festival-date">📅 @Festival.StartDate.ToString("MMM dd, yyyy")</p>
+                    <p class="festival-location">📍 @Festival.Location</p>
+                </div>
+            }
+            
+            <!-- Edit Form - ONLY FOR ADMINISTRATORS -->
+            <AuthorizeView Roles="Administrator">
+                <Authorized Context="authContext">
+                    @if (IsEditing)
+                    {
+                        <TicketEditForm Ticket="@Ticket" OnSave="OnSaveEdit" OnCancel="OnCancelEdit" />
+                    }
+                </Authorized>
+            </AuthorizeView>
+        </div>
+        
+        <!-- Action Buttons - ROLE-BASED -->
+        <div class="action-buttons">
+            <AuthorizeView Roles="Administrator">
+                <Authorized Context="authContext">
+                    @if (!IsEditing)
+                    {
+                        <button class="btn btn-edit" @onclick="OnStartEdit">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                    }
+                    <button class="btn btn-delete" @onclick="OnDelete">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public TicketGetDto Ticket { get; set; } = new();
+    [Parameter] public FestivalGetDto Festival { get; set; } = new();
+    [Parameter] public bool IsAdmin { get; set; } = false;
+    [Parameter] public bool IsEditing { get; set; } = false;
+    [Parameter] public EventCallback OnStartEdit { get; set; }
+    [Parameter] public EventCallback<TicketUpdateDto> OnSaveEdit { get; set; }
+    [Parameter] public EventCallback OnCancelEdit { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
+} 

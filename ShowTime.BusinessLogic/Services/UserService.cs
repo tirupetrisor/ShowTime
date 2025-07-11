@@ -57,6 +57,7 @@ public class UserService(IRepository<User> userRepository) : IUserService
             Console.WriteLine("✅ Login successful!");
             return new LoginResponseDto
             {
+                UserId = user.Id,
                 Role = user.Role
             };
         }

@@ -47,11 +47,6 @@
                             <span>Go to Home</span>
                         </button>
                         
-                        <button class="btn btn-secondary btn-action" @onclick="GoBack">
-                            <i class="fas fa-arrow-left"></i>
-                            <span>Go Back</span>
-                        </button>
-                        
                         <AuthorizeView>
                             <NotAuthorized>
                                 <a href="/login" class="btn btn-login btn-action">
@@ -59,12 +54,6 @@
                                     <span>Login</span>
                                 </a>
                             </NotAuthorized>
-                            <Authorized>
-                                <button class="btn btn-logout btn-action" @onclick="Logout">
-                                    <i class="fas fa-sign-out-alt"></i>
-                                    <span>Logout</span>
-                                </button>
-                            </Authorized>
                         </AuthorizeView>
                     </div>
                     
@@ -79,16 +68,6 @@
     private void GoHome()
     {
         NavigationManager.NavigateTo("/");
-    }
-    
-    private void GoBack()
-    {
-        NavigationManager.NavigateTo("/");
-    }
-    
-    private void Logout()
-    {
-        NavigationManager.NavigateTo("/logout");
     }
 }
 
@@ -382,19 +361,6 @@
         color: white;
         text-decoration: none;
     }
-
-    .btn-logout {
-        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-        color: white;
-    }
-
-    .btn-logout:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 15px 35px rgba(220, 53, 69, 0.4);
-        color: white;
-    }
-
-
 
     /* Responsive Design */
     @@media (max-width: 768px) {

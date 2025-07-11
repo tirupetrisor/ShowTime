@@ -1,0 +1,181 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Authorization
+@using System.ComponentModel.DataAnnotations
+
+<div class="col-12 mb-4">
+    <div class="festival-card">
+        <div class="row g-0">
+            <!-- Festival Image -->
+            <div class="col-md-3">
+                <div class="festival-image-container">
+                    <img class="festival-image" src="@Festival.SplashArt" alt="@Festival.Name" 
+                         onerror="this.src='https://via.placeholder.com/300x200/9b59b6/white?text=No+Image'" />
+                </div>
+            </div>
+            
+            <!-- Festival Content -->
+            <div class="col-md-9">
+                <div class="festival-content">
+                    @if (IsEditing)
+                    {
+                        <!-- Edit Mode -->
+                        <div class="edit-mode">
+                            <h6 class="edit-title">✏️ Edit Festival</h6>
+                            <EditForm Model="UpdateFestival" OnValidSubmit="HandleSaveEdit" FormName="@($"UpdateFestivalForm_{Festival.Id}")">
+                                <DataAnnotationsValidator />
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">🎪 Festival Name</label>
+                                            <InputText @bind-Value="UpdateFestival.Name" class="form-control" />
+                                            <ValidationMessage For="@(() => UpdateFestival.Name)" class="text-warning fw-bold" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">📍 Location</label>
+                                            <InputText @bind-Value="UpdateFestival.Location" class="form-control" />
+                                            <ValidationMessage For="@(() => UpdateFestival.Location)" class="text-warning fw-bold" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">📅 Start Date</label>
+                                            <InputDate @bind-Value="UpdateFestival.StartDate" class="form-control" />
+                                            <ValidationMessage For="@(() => UpdateFestival.StartDate)" class="text-warning fw-bold" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">📅 End Date</label>
+                                            <InputDate @bind-Value="UpdateFestival.EndDate" class="form-control" />
+                                            <ValidationMessage For="@(() => UpdateFestival.EndDate)" class="text-warning fw-bold" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">🖼️ Splash Art URL</label>
+                                            <InputText @bind-Value="UpdateFestival.SplashArt" class="form-control" />
+                                            <ValidationMessage For="@(() => UpdateFestival.SplashArt)" class="text-warning fw-bold" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">👥 Capacity</label>
+                                            <InputNumber @bind-Value="UpdateFestival.Capacity" class="form-control" />
+                                            <ValidationMessage For="@(() => UpdateFestival.Capacity)" class="text-warning fw-bold" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="edit-actions">
+                                    <button type="submit" class="btn-save">
+                                        <i class="fas fa-check"></i> Save Changes
+                                    </button>
+                                    <button type="button" class="btn-cancel" @onclick="HandleCancelEdit">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                            </EditForm>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Display Mode -->
+                        <div class="festival-header">
+                            <h4 class="festival-title">@Festival.Name</h4>
+                        </div>
+                        
+                        <div class="festival-details">
+                            <div class="detail-item">
+                                <i class="fa-solid fa-location-dot detail-icon"></i>
+                                <span class="detail-value festival-location">@Festival.Location</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fa-solid fa-calendar-days detail-icon"></i>
+                                <span class="detail-value festival-dates">@Festival.StartDate.ToString("MMM dd") - @Festival.EndDate.ToString("MMM dd, yyyy")</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fa-solid fa-users detail-icon"></i>
+                                <span class="detail-value festival-capacity">@Festival.Capacity.ToString("N0") people</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Festival Action Buttons -->
+                        <div class="festival-actions">
+                            <!-- View Actions -->
+                            <div>
+                                <button class="btn-lineup" @onclick="OnViewLineup">
+                                    <i class="fa-solid fa-music"></i> View Lineup
+                                </button>
+                                
+                                <button class="btn-tickets" @onclick="OnViewTickets">
+                                    <i class="fa-solid fa-ticket"></i> View Tickets
+                                </button>
+                            </div>
+                            
+                            <!-- Admin Actions -->
+                            <AuthorizeView Roles="Administrator">
+                                <Authorized Context="authContext">
+                                    <div>
+                                        <button class="btn-edit" @onclick="OnStartEdit">
+                                            <i class="fa-solid fa-pen-to-square"></i> Edit
+                                        </button>
+                                        <button class="btn-delete" @onclick="OnDelete">
+                                            <i class="fa-solid fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </Authorized>
+                            </AuthorizeView>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public FestivalGetDto Festival { get; set; } = new();
+    [Parameter] public bool IsEditing { get; set; } = false;
+    [Parameter] public EventCallback OnStartEdit { get; set; }
+    [Parameter] public EventCallback<FestivalUpdateDto> OnSaveEdit { get; set; }
+    [Parameter] public EventCallback OnCancelEdit { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback OnViewLineup { get; set; }
+    [Parameter] public EventCallback OnViewTickets { get; set; }
+    
+    private FestivalUpdateDto UpdateFestival { get; set; } = new();
+    
+    protected override void OnParametersSet()
+    {
+        if (IsEditing)
+        {
+            UpdateFestival = new FestivalUpdateDto
+            {
+                Id = Festival.Id,
+                Name = Festival.Name,
+                Location = Festival.Location,
+                StartDate = Festival.StartDate,
+                EndDate = Festival.EndDate,
+                SplashArt = Festival.SplashArt,
+                Capacity = Festival.Capacity
+            };
+        }
+    }
+    
+    private async Task HandleSaveEdit()
+    {
+        await OnSaveEdit.InvokeAsync(UpdateFestival);
+    }
+    
+    private async Task HandleCancelEdit()
+    {
+        await OnCancelEdit.InvokeAsync();
+    }
+} 

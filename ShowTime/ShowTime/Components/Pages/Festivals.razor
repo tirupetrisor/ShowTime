@@ -4,403 +4,94 @@
 @using System.ComponentModel.DataAnnotations
 @inject IFestivalService FestivalService
 @inject IArtistService ArtistService
+@inject ITicketService TicketService
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
 <PageTitle>Festivals - ShowTime</PageTitle>
 
 <div class="container">
-    <div class="page-title-section">
-        <h1 class="page-title">🎪 Festival & Lineup Management</h1>
-        <p class="page-subtitle">Discover and manage amazing music festivals and their lineups</p>
-    </div>
+    <PageHeader Title="🎪 Festival & Lineup Management" 
+                Subtitle="Discover and manage amazing music festivals and their lineups" />
 
-    <!-- Search and Filter Section - ACCESSIBLE TO ALL -->
-    <div class="search-filter-section mb-4">
-        <div class="card search-card">
-            <div class="card-body">
-                <h5 class="text-center mb-3">🔍 Search & Filter Festivals</h5>
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">🎪 Search by Name</label>
-                        <input type="text" @bind="searchTerm" @bind:event="oninput" 
-                               class="form-control search-input" placeholder="Enter festival name..." />
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">📍 Filter by Location</label>
-                        <select @bind="selectedLocation" @bind:event="onchange" class="form-select search-input">
-                            <option value="">All Locations</option>
-                            @foreach (var location in availableLocations)
-                            {
-                                <option value="@location">@location</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">📊 Sort by</label>
-                        <select @bind="sortOrder" @bind:event="onchange" class="form-select search-input">
-                            <option value="">Default Order</option>
-                            <option value="name_asc">Name A-Z</option>
-                            <option value="name_desc">Name Z-A</option>
-                            <option value="date_asc">Date (Earliest First)</option>
-                            <option value="date_desc">Date (Latest First)</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="button" class="btn btn-clear w-100" @onclick="ClearFilters">
-                            🗑️ Clear
-                        </button>
-                    </div>
-                </div>
-                @if (!string.IsNullOrEmpty(_searchTerm) || !string.IsNullOrEmpty(_selectedLocation) || !string.IsNullOrEmpty(_sortOrder))
+    <!-- Search and Filter Section -->
+    <SearchFilter Title="Festivals" 
+                  OnClearFilters="ClearFilters"
+                  ShowResults="@(!string.IsNullOrEmpty(_searchTerm) || !string.IsNullOrEmpty(_selectedLocation) || !string.IsNullOrEmpty(_sortOrder))"
+                  ResultsMessage="@GetResultsMessage()">
+        <div class="col-md-4">
+            <label class="form-label fw-bold">🎪 Search by Name</label>
+            <input type="text" @bind="searchTerm" @bind:event="oninput" 
+                   class="form-control search-input" placeholder="Enter festival name..." />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-bold">📍 Filter by Location</label>
+            <select @bind="selectedLocation" @bind:event="onchange" class="form-select search-input">
+                <option value="">All Locations</option>
+                @foreach (var location in availableLocations)
                 {
-                    <div class="mt-3 text-center">
-                        <span class="badge results-badge">
-                            Found @filteredFestivals.Count of @allFestivals.Count festivals
-                            @if (!string.IsNullOrEmpty(_sortOrder))
-                            {
-                                <span class="ms-2">| Sorted by @GetSortDescription(_sortOrder)</span>
-                            }
-                        </span>
-                    </div>
+                    <option value="@location">@location</option>
                 }
-            </div>
+            </select>
         </div>
-    </div>
-
-    <!-- Add New Festival Section - ONLY FOR ADMINISTRATORS -->
-    <AuthorizeView Roles="Administrator">
-        <Authorized Context="authContext">
-            <div class="card add-festival-card">
-                <div class="card-body">
-                    <h3 class="text-center mb-4">✨ Add New Festival</h3>
-                    <EditForm Model="newFestival" OnValidSubmit="AddFestival" FormName="AddFestivalForm">
-                        <DataAnnotationsValidator />
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">🎪 Festival Name</label>
-                                <InputText @bind-Value="newFestival.Name" class="form-control form-control-modern" placeholder="Enter festival name"/>
-                                <ValidationMessage For="@(() => newFestival.Name)" class="text-warning fw-bold" />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">📍 Location</label>
-                                <InputText @bind-Value="newFestival.Location" class="form-control form-control-modern" placeholder="Enter location"/>
-                                <ValidationMessage For="@(() => newFestival.Location)" class="text-warning fw-bold" />
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">📅 Start Date</label>
-                                <InputDate @bind-Value="newFestival.StartDate" class="form-control form-control-modern"/>
-                                <ValidationMessage For="@(() => newFestival.StartDate)" class="text-warning fw-bold" />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">📅 End Date</label>
-                                <InputDate @bind-Value="newFestival.EndDate" class="form-control form-control-modern"/>
-                                <ValidationMessage For="@(() => newFestival.EndDate)" class="text-warning fw-bold" />
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">🖼️ Splash Art URL</label>
-                                <InputText @bind-Value="newFestival.SplashArt" class="form-control form-control-modern" placeholder="Enter image URL"/>
-                                <ValidationMessage For="@(() => newFestival.SplashArt)" class="text-warning fw-bold" />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">👥 Capacity</label>
-                                <InputNumber @bind-Value="newFestival.Capacity" class="form-control form-control-modern" placeholder="Enter capacity"/>
-                                <ValidationMessage For="@(() => newFestival.Capacity)" class="text-warning fw-bold" />
-                            </div>
-                        </div>
-                        <div class="text-center mt-4">
-                            <button type="submit" class="btn btn-add btn-modern">
-                                <i class="fas fa-plus"></i> Add Festival
-                            </button>
-                        </div>
-                    </EditForm>
-                </div>
-            </div>
-        </Authorized>
-    </AuthorizeView>
-
-    <!-- Festivals Grid Section - VISIBLE TO ALL -->
-    <h2 class="section-title">🌟 Our Festivals</h2>
-
-    @if (filteredFestivals.Count == 0 && allFestivals.Count > 0)
-    {
-        <div class="no-results">
-            <h4>🔍 No festivals found!</h4>
-            <p>Try adjusting your search criteria or clear the filters</p>
+        <div class="col-md-3">
+            <label class="form-label fw-bold">📊 Sort by</label>
+            <select @bind="sortOrder" @bind:event="onchange" class="form-select search-input">
+                <option value="">Default Order</option>
+                <option value="name_asc">Name A-Z</option>
+                <option value="name_desc">Name Z-A</option>
+                <option value="date_asc">Date (Earliest First)</option>
+                <option value="date_desc">Date (Latest First)</option>
+            </select>
         </div>
-    }
-    else if (allFestivals.Count == 0)
-    {
-        <div class="no-festivals">
-            <h4>🎭 No festivals registered yet!</h4>
-            <AuthorizeView Roles="Administrator">
-                <Authorized>
-                    <p>Start by adding your first festival above</p>
-                </Authorized>
-            </AuthorizeView>
-        </div>
-    }
-    else
-    {
-        <div class="row">
-            @foreach (var festival in filteredFestivals)
-            {
-                <div class="col-12 mb-4">
-                    <div class="card festival-card-expanded">
-                        <div class="row g-0">
-                            <!-- Festival Image -->
-                            <div class="col-md-4">
-                                <img class="festival-image-expanded" src="@festival.SplashArt" alt="@festival.Name" 
-                                     onerror="this.src='https://via.placeholder.com/400x300/4facfe/white?text=No+Image'" />
-                            </div>
-                            <!-- Festival Info -->
-                            <div class="col-md-8">
-                                <div class="card-body">
-                                    <div class="festival-header">
-                                        <h4 class="festival-name">@festival.Name</h4>
-                                        <p class="festival-location">📍 @festival.Location</p>
-                                        <p class="festival-dates">📅 @festival.StartDate.ToString("MMM dd") - @festival.EndDate.ToString("MMM dd, yyyy")</p>
-                                        <span class="festival-capacity">👥 @festival.Capacity.ToString("N0") people</span>
-                                    </div>
-                                    
-                                    <!-- Festival Action Buttons - ROLE-BASED -->
-                                    <div class="festival-actions mb-3">
-                                        <!-- View Lineup - AVAILABLE TO ALL -->
-                                        <button class="btn btn-lineup btn-sm" @onclick="() => ShowLineupModal(festival)">
-                                            <i class="fas fa-music"></i> View Lineup
-                                        </button>
-                                        
-                                        <!-- Edit/Delete - ONLY FOR ADMINISTRATORS -->
-                                        <AuthorizeView Roles="Administrator">
-                                            <Authorized Context="authContext">
-                                                <button class="btn btn-edit btn-sm" @onclick="() => StartEditFestival(festival)">
-                                                    <i class="fas fa-edit"></i> Edit Festival
-                                                </button>
-                                                <button class="btn btn-delete btn-sm" @onclick="async () => await DeleteFestival(festival.Id)">
-                                                    <i class="fas fa-trash"></i> Delete Festival
-                                                </button>
-                                            </Authorized>
-                                        </AuthorizeView>
-                                    </div>
+    </SearchFilter>
 
-                                    <!-- Festival Edit Form - ONLY FOR ADMINISTRATORS -->
-                                    <AuthorizeView Roles="Administrator">
-                                        <Authorized Context="authContext">
-                                            @if (editingFestivalId == festival.Id)
-                                            {
-                                                <div class="edit-form">
-                                                    <h6 class="text-primary mb-3">✏️ Edit Festival</h6>
-                                                    <EditForm Model="updateFestival" OnValidSubmit="UpdateFestival" FormName="@($"UpdateFestivalForm_{festival.Id}")">
-                                                        <DataAnnotationsValidator />
-                                                        <div class="row">
-                                                            <div class="col-md-6">
-                                                                <label class="form-label">🎪 Name</label>
-                                                                <InputText @bind-Value="updateFestival.Name" class="form-control"/>
-                                                                <ValidationMessage For="@(() => updateFestival.Name)" class="text-warning fw-bold" />
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <label class="form-label">📍 Location</label>
-                                                                <InputText @bind-Value="updateFestival.Location" class="form-control"/>
-                                                                <ValidationMessage For="@(() => updateFestival.Location)" class="text-warning fw-bold" />
-                                                            </div>
-                                                        </div>
-                                                        <div class="row">
-                                                            <div class="col-md-6">
-                                                                <label class="form-label">📅 Start Date</label>
-                                                                <InputDate @bind-Value="updateFestival.StartDate" class="form-control"/>
-                                                                <ValidationMessage For="@(() => updateFestival.StartDate)" class="text-warning fw-bold" />
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <label class="form-label">📅 End Date</label>
-                                                                <InputDate @bind-Value="updateFestival.EndDate" class="form-control"/>
-                                                                <ValidationMessage For="@(() => updateFestival.EndDate)" class="text-warning fw-bold" />
-                                                            </div>
-                                                        </div>
-                                                        <div class="row">
-                                                            <div class="col-md-6">
-                                                                <label class="form-label">🖼️ Splash Art URL</label>
-                                                                <InputText @bind-Value="updateFestival.SplashArt" class="form-control"/>
-                                                                <ValidationMessage For="@(() => updateFestival.SplashArt)" class="text-warning fw-bold" />
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <label class="form-label">👥 Capacity</label>
-                                                                <InputNumber @bind-Value="updateFestival.Capacity" class="form-control"/>
-                                                                <ValidationMessage For="@(() => updateFestival.Capacity)" class="text-warning fw-bold" />
-                                                            </div>
-                                                        </div>
-                                                        <div class="d-flex gap-2 mt-3">
-                                                            <button type="submit" class="btn btn-save btn-sm">
-                                                                <i class="fas fa-check"></i> Save
-                                                            </button>
-                                                            <button type="button" class="btn btn-cancel btn-sm" @onclick="CancelEditFestival">
-                                                                <i class="fas fa-times"></i> Cancel
-                                                            </button>
-                                                        </div>
-                                                    </EditForm>
-                                                </div>
-                                            }
-                                        </Authorized>
-                                    </AuthorizeView>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-    }
+    <!-- Add New Festival Form -->
+    <FestivalCreateForm OnAddFestival="AddFestival" />
+
+    <!-- Festivals List -->
+    <FestivalList AllFestivals="@allFestivals" 
+                  FilteredFestivals="@filteredFestivals"
+                  EditingFestivalId="@editingFestivalId"
+                  OnStartEdit="StartEditFestival"
+                  OnSaveEdit="UpdateFestival"
+                  OnCancelEdit="CancelEditFestival"
+                  OnDeleteFestival="DeleteFestival"
+                  OnViewLineup="ShowLineupModal"
+                  OnViewTickets="ShowTicketsModal" />
+
+    <!-- Lineup Modal -->
+    <LineupModal IsVisible="@showLineupModal"
+                 Festival="@selectedFestival"
+                 Artists="@lineupArtists"
+                 AllArtists="@allArtists"
+                 OnClose="CloseLineupModal"
+                 OnAddLineup="AddLineup"
+                 OnRemoveLineup="RemoveLineup" />
+
+    <!-- Tickets Modal -->
+    <TicketsModal IsVisible="@showTicketsModal"
+                  Festival="@selectedFestival"
+                  Tickets="@festivalTickets"
+                  OnClose="CloseTicketsModal"
+                  OnAddTicket="AddTicket"
+                  OnUpdateTicket="UpdateTicket"
+                  OnDeleteTicket="DeleteTicket" />
 </div>
-
-<!-- Lineup Modal Section - ACCESSIBLE TO ALL -->
-@if (selectedFestival != null)
-{
-    <div class="lineup-modal-overlay" @onclick="CloseLineupModal">
-        <div class="lineup-modal" @onclick:stopPropagation="true">
-            <div class="lineup-modal-header">
-                <h3 class="lineup-modal-title">🎵 Lineup for @selectedFestival.Name</h3>
-                <button class="btn btn-close-modal" @onclick="CloseLineupModal">
-                    <i class="fas fa-arrow-left"></i>
-                    <span class="close-text">Back</span>
-                </button>
-            </div>
-            
-            <div class="lineup-modal-body">
-                <!-- Add Lineup Form - ONLY FOR ADMINISTRATORS -->
-                <AuthorizeView Roles="Administrator">
-                    <Authorized Context="authContext">
-                        <div class="add-lineup-form">
-                            <EditForm Model="newLineup" OnValidSubmit="AddLineup" FormName="@($"AddLineupForm_{selectedFestival.Id}")">
-                                <DataAnnotationsValidator />
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <label class="form-label">🎤 Artist</label>
-                                        <InputSelect @bind-Value="newLineup.ArtistId" class="form-control">
-                                            <option value="0">Select Artist</option>
-                                            @if (artists != null)
-                                            {
-                                                @foreach (var artist in artists)
-                                                {
-                                                    <option value="@artist.Id">@artist.Name - @artist.Genre</option>
-                                                }
-                                            }
-                                        </InputSelect>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">🎬 Stage</label>
-                                        <InputText @bind-Value="newLineup.Stage" class="form-control" placeholder="Enter stage name"/>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">⏰ Performance Time</label>
-                                        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="newLineup.StartTime" class="form-control"/>
-                                    </div>
-                                </div>
-                                <div class="text-center mt-3">
-                                    <button type="submit" class="btn btn-add btn-sm">
-                                        <i class="fas fa-plus"></i> Add to Lineup
-                                    </button>
-                                </div>
-                            </EditForm>
-                        </div>
-                    </Authorized>
-                </AuthorizeView>
-
-                <!-- Festival Lineup Display - VISIBLE TO ALL -->
-                @{
-                    var festivalLineups = lineups.Where(l => l.FestivalId == selectedFestival.Id).ToList();
-                }
-                
-                @if (festivalLineups.Count == 0)
-                {
-                    <div class="no-lineup">
-                        <p class="text-muted">🎭 No artists in lineup yet.</p>
-                        <AuthorizeView Roles="Administrator">
-                            <Authorized Context="authContext">
-                                <p class="text-muted">Add some above!</p>
-                            </Authorized>
-                        </AuthorizeView>
-                    </div>
-                }
-                else
-                {
-                    <div class="lineup-grid">
-                        @foreach (var lineup in festivalLineups)
-                        {
-                            <div class="lineup-item">
-                                <div class="lineup-info">
-                                    <h6 class="artist-name">🎤 @lineup.ArtistName</h6>
-                                    <p class="artist-genre">@lineup.ArtistGenre</p>
-                                    <p class="stage-info">🎬 @lineup.Stage</p>
-                                    <span class="time-badge">⏰ @lineup.StartTime.ToString("MMM dd, HH:mm")</span>
-                                </div>
-                                
-                                <!-- Lineup Actions - ONLY FOR ADMINISTRATORS -->
-                                <AuthorizeView Roles="Administrator">
-                                    <Authorized Context="authContext">
-                                        <div class="lineup-actions">
-                                            <button class="btn btn-edit btn-xs" @onclick="() => StartEditLineup(lineup)">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-delete btn-xs" @onclick="async () => await DeleteLineup(lineup.FestivalId, lineup.ArtistId)">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </Authorized>
-                                </AuthorizeView>
-                                
-                                <!-- Lineup Edit Form - ONLY FOR ADMINISTRATORS -->
-                                <AuthorizeView Roles="Administrator">
-                                    <Authorized Context="authContext">
-                                        @if (editingLineupKey == $"{lineup.FestivalId}_{lineup.ArtistId}")
-                                        {
-                                            <div class="edit-lineup-form">
-                                                <EditForm Model="updateLineup" OnValidSubmit="UpdateLineup">
-                                                    <DataAnnotationsValidator />
-                                                    <div class="row">
-                                                        <div class="col-md-6">
-                                                            <label class="form-label">🎬 Stage</label>
-                                                            <InputText @bind-Value="updateLineup.Stage" class="form-control"/>
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label">⏰ Performance Time</label>
-                                                            <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="updateLineup.StartTime" class="form-control"/>
-                                                        </div>
-                                                    </div>
-                                                    <div class="d-flex gap-2 mt-2">
-                                                        <button type="submit" class="btn btn-save btn-xs">
-                                                            <i class="fas fa-check"></i> Save
-                                                        </button>
-                                                        <button type="button" class="btn btn-cancel btn-xs" @onclick="CancelEditLineup">
-                                                            <i class="fas fa-times"></i> Cancel
-                                                        </button>
-                                                    </div>
-                                                </EditForm>
-                                            </div>
-                                        }
-                                    </Authorized>
-                                </AuthorizeView>
-                            </div>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-}
 
 @code {
     private IList<FestivalGetDto> allFestivals = new List<FestivalGetDto>();
     private IList<FestivalGetDto> filteredFestivals = new List<FestivalGetDto>();
-    private IList<LineupGetDto> lineups = new List<LineupGetDto>();
-    private IList<ArtistGetDto> artists = new List<ArtistGetDto>();
     private IList<string> availableLocations = new List<string>();
+    private IList<ArtistGetDto> lineupArtists = new List<ArtistGetDto>();
+    private IList<ArtistGetDto> allArtists = new List<ArtistGetDto>();
+    private IList<TicketGetDto> festivalTickets = new List<TicketGetDto>();
+    
     private int? editingFestivalId = null;
-    private string? editingLineupKey = null;
-    private FestivalGetDto? selectedFestival = null;
-
-    // Filter properties
+    private FestivalGetDto selectedFestival = new();
+    private bool showLineupModal = false;
+    private bool showTicketsModal = false;
+    
     private string _searchTerm = string.Empty;
     private string searchTerm 
     { 
@@ -433,29 +124,23 @@
             FilterFestivals(); 
         } 
     }
-
-    [SupplyParameterFromForm] 
-    private FestivalCreateDto newFestival { get; set; } = new();
-
-    private FestivalUpdateDto updateFestival { get; set; } = new();
-
-    [SupplyParameterFromForm] 
-    private LineupCreateDto newLineup { get; set; } = new();
-
-    private LineupUpdateDto updateLineup { get; set; } = new();
     
     protected override async Task OnInitializedAsync()
     {
-        await LoadData();
+        await LoadFestivals();
+        await LoadAllArtists();
     }
 
-    private async Task LoadData()
+    private async Task LoadFestivals()
     {
         allFestivals = await FestivalService.GetAllFestivalsAsync();
-        lineups = await FestivalService.GetAllLineupsAsync();
-        artists = await ArtistService.GetAllArtistsAsync();
         UpdateAvailableLocations();
         FilterFestivals();
+    }
+
+    private async Task LoadAllArtists()
+    {
+        allArtists = await ArtistService.GetAllArtistsAsync();
     }
 
     private void UpdateAvailableLocations()
@@ -497,824 +182,127 @@
         FilterFestivals();
     }
 
+    private string GetResultsMessage()
+    {
+        var result = $"Found {filteredFestivals.Count} of {allFestivals.Count} festivals";
+        if (!string.IsNullOrEmpty(_sortOrder))
+        {
+            result += $" | Sorted by {GetSortDescription(_sortOrder)}";
+        }
+        return result;
+    }
+
     private string GetSortDescription(string sortOrder)
     {
         return sortOrder switch
         {
             "name_asc" => "Name A-Z",
             "name_desc" => "Name Z-A",
-            "date_asc" => "Date (Earliest)",
-            "date_desc" => "Date (Latest)",
+            "date_asc" => "Date (Earliest First)",
+            "date_desc" => "Date (Latest First)",
             _ => "Default"
         };
     }
 
-    private async Task AddFestival()
+    private async Task AddFestival(FestivalCreateDto festivalDto)
     {
-        await FestivalService.AddFestivalAsync(newFestival);
-        newFestival = new();
-        await LoadData();
+        await FestivalService.AddFestivalAsync(festivalDto);
+        await LoadFestivals();
     }
 
     private void StartEditFestival(FestivalGetDto festival)
     {
         editingFestivalId = festival.Id;
-        updateFestival = new FestivalUpdateDto
-        {
-            Id = festival.Id,
-            Name = festival.Name,
-            Location = festival.Location,
-            StartDate = festival.StartDate,
-            EndDate = festival.EndDate,
-            SplashArt = festival.SplashArt,
-            Capacity = festival.Capacity
-        };
     }
 
     private void CancelEditFestival()
     {
         editingFestivalId = null;
-        updateFestival = new();
     }
 
-    private async Task UpdateFestival()
+    private async Task UpdateFestival(FestivalUpdateDto updateDto)
     {
-        await FestivalService.UpdateFestivalAsync(updateFestival);
+        await FestivalService.UpdateFestivalAsync(updateDto);
         editingFestivalId = null;
-        updateFestival = new();
-        await LoadData();
+        await LoadFestivals();
     }
 
     private async Task DeleteFestival(int id)
     {
         await FestivalService.DeleteFestivalAsync(id);
-        await LoadData();
+        await LoadFestivals();
     }
 
-    private void ShowLineupModal(FestivalGetDto festival)
+    private async Task ShowLineupModal(FestivalGetDto festival)
     {
         selectedFestival = festival;
-        newLineup = new LineupCreateDto { FestivalId = festival.Id };
+        // Load lineup artists for this festival
+        var lineups = await FestivalService.GetLineupsByFestivalIdAsync(festival.Id);
+        lineupArtists = lineups.Select(l => new ArtistGetDto
+        {
+            Id = l.ArtistId,
+            Name = l.ArtistName,
+            Genre = l.ArtistGenre
+        }).ToList();
+        showLineupModal = true;
     }
 
     private void CloseLineupModal()
     {
-        selectedFestival = null;
-        editingLineupKey = null;
-        updateLineup = new();
+        showLineupModal = false;
+        selectedFestival = new();
+        lineupArtists = new List<ArtistGetDto>();
     }
 
-    private async Task AddLineup()
+    private async Task ShowTicketsModal(FestivalGetDto festival)
     {
-        await FestivalService.AddLineupAsync(newLineup);
-        if (selectedFestival != null)
-        {
-            newLineup = new LineupCreateDto { FestivalId = selectedFestival.Id };
-        }
-        await LoadData();
+        selectedFestival = festival;
+        // Load tickets for this festival
+        festivalTickets = await TicketService.GetTicketsByFestivalIdAsync(festival.Id);
+        showTicketsModal = true;
     }
 
-    private void StartEditLineup(LineupGetDto lineup)
+    private void CloseTicketsModal()
     {
-        editingLineupKey = $"{lineup.FestivalId}_{lineup.ArtistId}";
-        updateLineup = new LineupUpdateDto
-        {
-            FestivalId = lineup.FestivalId,
-            ArtistId = lineup.ArtistId,
-            Stage = lineup.Stage,
-            StartTime = lineup.StartTime
-        };
-        StateHasChanged();
+        showTicketsModal = false;
+        selectedFestival = new();
+        festivalTickets = new List<TicketGetDto>();
     }
 
-    private void CancelEditLineup()
+    // Lineup Management Methods
+    private async Task AddLineup(LineupCreateDto lineupDto)
     {
-        editingLineupKey = null;
-        updateLineup = new();
-        StateHasChanged();
+        await FestivalService.AddLineupAsync(lineupDto);
+        // Refresh lineup data
+        await ShowLineupModal(selectedFestival);
     }
 
-    private async Task UpdateLineup()
+    private async Task RemoveLineup(int artistId)
     {
-        await FestivalService.UpdateLineupAsync(updateLineup);
-        editingLineupKey = null;
-        updateLineup = new();
-        await LoadData();
+        await FestivalService.DeleteLineupAsync(selectedFestival.Id, artistId);
+        // Refresh lineup data
+        await ShowLineupModal(selectedFestival);
     }
 
-    private async Task DeleteLineup(int festivalId, int artistId)
+    // Ticket Management Methods
+    private async Task AddTicket(TicketCreateDto ticketDto)
     {
-        await FestivalService.DeleteLineupAsync(festivalId, artistId);
-        await LoadData();
+        await TicketService.CreateTicketAsync(ticketDto);
+        // Refresh ticket data
+        await ShowTicketsModal(selectedFestival);
     }
-} 
 
-<style>
-    /* Page Title Section */
-    .page-title-section {
-        text-align: center;
-        padding: 2rem 0 1rem 0;
-        margin-bottom: 2rem;
+    private async Task UpdateTicket((int Id, TicketUpdateDto Dto) ticketData)
+    {
+        await TicketService.UpdateTicketAsync(ticketData.Id, ticketData.Dto);
+        // Refresh ticket data
+        await ShowTicketsModal(selectedFestival);
     }
 
-    .page-title {
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: #2c3e50;
-        margin-bottom: 0.5rem;
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    private async Task DeleteTicket(int ticketId)
+    {
+        await TicketService.DeleteTicketAsync(ticketId);
+        // Refresh ticket data
+        await ShowTicketsModal(selectedFestival);
     }
-
-    .page-subtitle {
-        font-size: 1.2rem;
-        color: #6c757d;
-        font-weight: 500;
-        margin: 0;
-    }
-
-    /* Search Section */
-    .search-filter-section {
-        margin-bottom: 2rem;
-    }
-
-    .search-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        border-radius: 20px;
-        color: white;
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-    }
-
-    .search-card .card-body {
-        padding: 2rem;
-    }
-
-    .search-input {
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 15px;
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        padding: 12px 16px;
-        backdrop-filter: blur(10px);
-    }
-
-    .search-input::placeholder {
-        color: rgba(255, 255, 255, 0.7);
-    }
-
-    .search-input:focus {
-        border-color: rgba(255, 255, 255, 0.8);
-        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-    }
-
-    .search-input option {
-        background: #2c3e50;
-        color: white;
-    }
-
-    .btn-clear {
-        background: linear-gradient(45deg, #868e96, #6c757d);
-        color: white;
-        border: none;
-        border-radius: 15px;
-        padding: 12px 16px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .btn-clear:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(134, 142, 150, 0.4);
-        color: white;
-    }
-
-    .results-badge {
-        background: linear-gradient(45deg, #43e97b, #38f9d7);
-        color: white;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        font-weight: 600;
-    }
-
-    .add-festival-card {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        border: none;
-        border-radius: 20px;
-        color: white;
-        box-shadow: 0 10px 30px rgba(79, 172, 254, 0.3);
-        margin-bottom: 2rem;
-    }
-
-    .add-festival-card .card-body {
-        padding: 2rem;
-    }
-
-    .form-control-modern {
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 15px;
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        padding: 12px 20px;
-        margin-bottom: 1rem;
-        backdrop-filter: blur(10px);
-    }
-
-    .form-control-modern::placeholder {
-        color: rgba(255, 255, 255, 0.7);
-    }
-
-    .form-control-modern:focus {
-        border-color: rgba(255, 255, 255, 0.8);
-        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
-        background: rgba(255, 255, 255, 0.2);
-    }
-
-    .btn-modern {
-        border-radius: 25px;
-        padding: 12px 30px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: all 0.3s ease;
-        border: none;
-    }
-
-    .btn-add {
-        background: linear-gradient(45deg, #4facfe, #00f2fe);
-        color: white;
-    }
-
-    .btn-add:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(79, 172, 254, 0.4);
-        color: white;
-    }
-
-    .festival-card-expanded {
-        border: none;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-
-    .festival-card-expanded:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    .festival-image-expanded {
-        width: 100%;
-        height: 300px;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
-
-    .festival-card-expanded:hover .festival-image-expanded {
-        transform: scale(1.05);
-    }
-
-    .festival-header {
-        margin-bottom: 1rem;
-    }
-
-    .festival-name {
-        color: #2c3e50;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-
-    .festival-location, .festival-dates {
-        color: #6c757d;
-        margin-bottom: 0.25rem;
-    }
-
-    .festival-capacity {
-        background: linear-gradient(45deg, #4facfe, #00f2fe);
-        color: white;
-        padding: 4px 12px;
-        border-radius: 15px;
-        font-size: 0.9rem;
-        font-weight: 600;
-    }
-
-    .festival-actions {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-    }
-
-    .btn-edit {
-        background: linear-gradient(45deg, #4ecdc4, #44a08d);
-        color: white;
-        border-radius: 15px;
-        padding: 8px 20px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .btn-edit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4);
-        color: white;
-    }
-
-    .btn-delete {
-        background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-        color: white;
-        border-radius: 15px;
-        padding: 8px 20px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .btn-delete:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
-        color: white;
-    }
-
-    .btn-lineup {
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        color: white;
-        border-radius: 15px;
-        padding: 8px 20px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .btn-lineup:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        color: white;
-    }
-
-    .lineup-section {
-        margin-top: 2rem;
-        padding: 1.5rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 15px;
-        color: white;
-    }
-
-    .lineup-title {
-        color: white;
-        font-weight: 700;
-        margin-bottom: 1rem;
-    }
-
-    .add-lineup-form {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 1rem;
-        border-radius: 10px;
-        margin-bottom: 1.5rem;
-    }
-
-    .lineup-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1rem;
-    }
-
-    .lineup-item {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 1rem;
-        border-radius: 10px;
-        backdrop-filter: blur(10px);
-    }
-
-    .artist-name {
-        color: white;
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-    }
-
-    .artist-genre, .stage-info {
-        color: rgba(255, 255, 255, 0.8);
-        margin-bottom: 0.25rem;
-        font-size: 0.9rem;
-    }
-
-    .time-badge {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        padding: 2px 8px;
-        border-radius: 10px;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
-
-    .lineup-actions {
-        display: flex;
-        gap: 0.25rem;
-        margin-top: 0.5rem;
-    }
-
-    .edit-lineup-form {
-        margin-top: 1rem;
-        padding: 1rem;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-    }
-
-    .edit-form {
-        background: linear-gradient(145deg, #667eea, #764ba2);
-        padding: 1.5rem;
-        border-radius: 15px;
-        margin-top: 1rem;
-    }
-
-    .edit-form .form-control {
-        border-radius: 10px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        margin-bottom: 1rem;
-    }
-
-    .edit-form .form-control:focus {
-        border-color: rgba(255, 255, 255, 0.8);
-        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
-        background: rgba(255, 255, 255, 0.2);
-    }
-
-    .edit-form label {
-        color: white;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .btn-save {
-        background: linear-gradient(45deg, #51cf66, #40c057);
-        color: white;
-        border-radius: 15px;
-        padding: 8px 20px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .btn-save:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(81, 207, 102, 0.4);
-        color: white;
-    }
-
-    .btn-cancel {
-        background: linear-gradient(45deg, #868e96, #6c757d);
-        color: white;
-        border-radius: 15px;
-        padding: 8px 20px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .btn-cancel:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(134, 142, 150, 0.4);
-        color: white;
-    }
-
-    .btn-xs {
-        padding: 4px 12px;
-        font-size: 0.75rem;
-    }
-
-    .btn-sm {
-        padding: 6px 16px;
-        font-size: 0.85rem;
-    }
-
-    .no-results {
-        text-align: center;
-        padding: 4rem 2rem;
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
-        border-radius: 20px;
-        font-size: 1.2rem;
-    }
-
-    .no-festivals {
-        text-align: center;
-        padding: 4rem 2rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 20px;
-        font-size: 1.2rem;
-    }
-
-    .section-title {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #2c3e50;
-        text-align: center;
-        margin-bottom: 3rem;
-        position: relative;
-    }
-
-    .section-title::after {
-        content: '';
-        position: absolute;
-        bottom: -10px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 80px;
-        height: 4px;
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        border-radius: 2px;
-    }
-
-    .validation-message {
-        color: #ffd93d !important;
-        font-weight: bold;
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
-        display: block;
-    }
-
-    /* Lineup Modal Styles */
-    .lineup-modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        backdrop-filter: blur(5px);
-    }
-
-    .lineup-modal {
-        background: white;
-        border-radius: 20px;
-        width: 90%;
-        max-width: 1000px;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        animation: modalSlideIn 0.3s ease-out;
-    }
-
-    @@keyframes modalSlideIn {
-        from {
-            transform: translateY(-50px);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-
-    .lineup-modal-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 20px 20px 0 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .lineup-modal-title {
-        margin: 0;
-        font-size: 1.8rem;
-        font-weight: 700;
-    }
-
-    .btn-close-modal {
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        color: white;
-        border: none;
-        border-radius: 25px;
-        padding: 10px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .btn-close-modal:hover {
-        background: linear-gradient(45deg, #764ba2, #667eea);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        color: white;
-    }
-
-    .btn-close-modal .close-text {
-        font-size: 0.85rem;
-        font-weight: 700;
-    }
-
-    .lineup-modal-body {
-        padding: 2rem;
-    }
-
-    .lineup-modal .add-lineup-form {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 1.5rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-    }
-
-    .lineup-modal .add-lineup-form .form-control {
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        backdrop-filter: blur(10px);
-    }
-
-    .lineup-modal .add-lineup-form .form-control:focus {
-        border-color: rgba(255, 255, 255, 0.8);
-        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-    }
-
-    .lineup-modal .add-lineup-form .form-control option {
-        background: #2c3e50;
-        color: white;
-    }
-
-    .lineup-modal .add-lineup-form label {
-        color: white;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .lineup-modal .no-lineup {
-        text-align: center;
-        padding: 3rem;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 15px;
-        font-size: 1.1rem;
-        color: #6c757d;
-    }
-
-    /* Modal Lineup Items Styles */
-    .lineup-modal .lineup-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1rem;
-    }
-
-    .lineup-modal .lineup-item {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        padding: 1.5rem;
-        border-radius: 15px;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
-        position: relative;
-    }
-
-    .lineup-modal .lineup-item:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        border-color: #667eea;
-    }
-
-    .lineup-modal .artist-name {
-        color: #2c3e50;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        font-size: 1.1rem;
-    }
-
-    .lineup-modal .artist-genre {
-        color: #6c757d;
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
-        font-weight: 500;
-    }
-
-    .lineup-modal .stage-info {
-        color: #495057;
-        margin-bottom: 0.75rem;
-        font-size: 0.95rem;
-        font-weight: 600;
-    }
-
-    .lineup-modal .time-badge {
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        display: inline-block;
-        margin-bottom: 1rem;
-    }
-
-    .lineup-modal .lineup-actions {
-        display: flex;
-        gap: 0.5rem;
-        margin-top: 1rem;
-    }
-
-    .lineup-modal .btn-edit {
-        background: linear-gradient(45deg, #4ecdc4, #44a08d);
-        color: white;
-        border-radius: 10px;
-        padding: 6px 12px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .lineup-modal .btn-edit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
-        color: white;
-    }
-
-    .lineup-modal .btn-delete {
-        background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-        color: white;
-        border-radius: 10px;
-        padding: 6px 12px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .lineup-modal .btn-delete:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-        color: white;
-    }
-
-    .lineup-modal .edit-lineup-form {
-        margin-top: 1rem;
-        padding: 1rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 10px;
-        color: white;
-    }
-
-    .lineup-modal .edit-lineup-form .form-control {
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        margin-bottom: 0.5rem;
-    }
-
-    .lineup-modal .edit-lineup-form .form-control:focus {
-        border-color: rgba(255, 255, 255, 0.8);
-        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-    }
-
-    .lineup-modal .edit-lineup-form label {
-        color: white;
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-        font-size: 0.9rem;
-    }
-
-    /* New styles for disabled sections */
-    .add-festival-card-disabled {
-        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-        border: none;
-        border-radius: 20px;
-        color: white;
-        box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
-        margin-bottom: 2rem;
-    }
-
-    .add-lineup-form-disabled {
-        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-        color: white;
-        padding: 1.5rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-        text-align: center;
-    }
-
-    .add-lineup-form-disabled h6 {
-        color: rgba(255, 255, 255, 0.9);
-        margin-bottom: 0.5rem;
-    }
-
-    .add-lineup-form-disabled p {
-        color: rgba(255, 255, 255, 0.7);
-        margin: 0;
-    }
-</style>
+}

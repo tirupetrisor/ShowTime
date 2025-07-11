@@ -1,0 +1,208 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Authorization
+
+@if (IsVisible)
+{
+    <div class="tickets-modal-overlay" @onclick="OnClose">
+        <div class="tickets-modal-container" @onclick:stopPropagation="true">
+            <!-- Modern Header -->
+            <div class="tickets-modal-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="fa-solid fa-ticket"></i>
+                    </div>
+                    <div class="header-text">
+                        <h3 class="modal-title">@Festival.Name</h3>
+                        <p class="modal-subtitle">Tickets Management</p>
+                    </div>
+                </div>
+                <button type="button" class="close-btn" @onclick="OnClose">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="tickets-modal-body">
+                <!-- Add New Ticket Section -->
+                <AuthorizeView Roles="Administrator">
+                    <Authorized Context="authContext">
+                        <div class="add-ticket-section">
+                            <div class="section-header">
+                                <h5><i class="fa-solid fa-plus"></i> Add New Ticket</h5>
+                            </div>
+                            <div class="add-form">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Ticket Type</label>
+                                        <input type="text" @bind="newTicketType" class="custom-input" placeholder="e.g., VIP, General Admission..." />
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Price ($)</label>
+                                        <input type="number" @bind="newTicketPrice" class="custom-input" placeholder="0.00" step="0.01" />
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="add-btn" @onclick="AddTicket">
+                                        <i class="fa-solid fa-plus"></i>
+                                        Add Ticket
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+
+                <!-- Current Tickets Section -->
+                <div class="tickets-section">
+                    <div class="section-header">
+                        <h5><i class="fa-solid fa-list"></i> Available Tickets</h5>
+                    </div>
+                    
+                    @if (Tickets != null && Tickets.Any())
+                    {
+                        <div class="tickets-grid">
+                            @foreach (var ticket in Tickets)
+                            {
+                                <div class="ticket-card">
+                                    @if (editingTicketId == ticket.Id)
+                                    {
+                                        <!-- Edit Mode -->
+                                        <div class="ticket-edit-form">
+                                            <div class="edit-header">
+                                                <i class="fa-solid fa-edit"></i>
+                                                <span>Editing Ticket</span>
+                                            </div>
+                                            <div class="edit-fields">
+                                                <div class="edit-field">
+                                                    <label>Type</label>
+                                                    <input type="text" @bind="editTicketType" class="edit-input" />
+                                                </div>
+                                                <div class="edit-field">
+                                                    <label>Price</label>
+                                                    <input type="number" @bind="editTicketPrice" class="edit-input" step="0.01" />
+                                                </div>
+                                            </div>
+                                            <div class="edit-actions">
+                                                <button class="save-btn" @onclick="SaveTicketEdit">
+                                                    <i class="fa-solid fa-check"></i> Save
+                                                </button>
+                                                <button class="cancel-btn" @onclick="CancelTicketEdit">
+                                                    <i class="fa-solid fa-times"></i> Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <!-- View Mode -->
+                                        <div class="ticket-content">
+                                            <div class="ticket-info">
+                                                <h6 class="ticket-type">@ticket.Type</h6>
+                                                <div class="ticket-price">$@ticket.Price.ToString("F2")</div>
+                                            </div>
+                                            <AuthorizeView Roles="Administrator">
+                                                <Authorized Context="authContext">
+                                                    <div class="ticket-actions">
+                                                        <button type="button" class="edit-btn" 
+                                                                @onclick="() => StartEditTicket(ticket)"
+                                                                title="Edit ticket">
+                                                            <i class="fa-solid fa-pen-to-square"></i>
+                                                        </button>
+                                                        <button type="button" class="remove-btn" 
+                                                                @onclick="() => DeleteTicket(ticket.Id)"
+                                                                title="Delete ticket">
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </Authorized>
+                                            </AuthorizeView>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="fa-solid fa-ticket"></i>
+                            <p>No tickets available yet</p>
+                            <span>Create some tickets to get started!</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; } = false;
+    [Parameter] public FestivalGetDto Festival { get; set; } = new();
+    [Parameter] public IList<TicketGetDto> Tickets { get; set; } = new List<TicketGetDto>();
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<TicketCreateDto> OnAddTicket { get; set; }
+    [Parameter] public EventCallback<(int Id, TicketUpdateDto Dto)> OnUpdateTicket { get; set; }
+    [Parameter] public EventCallback<int> OnDeleteTicket { get; set; }
+
+    private string newTicketType = string.Empty;
+    private decimal newTicketPrice = 0;
+
+    private int editingTicketId = 0;
+    private string editTicketType = string.Empty;
+    private decimal editTicketPrice = 0;
+
+    private async Task AddTicket()
+    {
+        if (!string.IsNullOrEmpty(newTicketType) && newTicketPrice > 0)
+        {
+            var ticketDto = new TicketCreateDto
+            {
+                FestivalId = Festival.Id,
+                Type = newTicketType,
+                Price = newTicketPrice
+            };
+
+            await OnAddTicket.InvokeAsync(ticketDto);
+            
+            // Reset form
+            newTicketType = string.Empty;
+            newTicketPrice = 0;
+        }
+    }
+
+    private void StartEditTicket(TicketGetDto ticket)
+    {
+        editingTicketId = ticket.Id;
+        editTicketType = ticket.Type;
+        editTicketPrice = ticket.Price;
+    }
+
+    private async Task SaveTicketEdit()
+    {
+        if (!string.IsNullOrEmpty(editTicketType) && editTicketPrice > 0)
+        {
+            var updateDto = new TicketUpdateDto
+            {
+                Type = editTicketType,
+                Price = editTicketPrice
+            };
+
+            await OnUpdateTicket.InvokeAsync((editingTicketId, updateDto));
+            CancelTicketEdit();
+        }
+    }
+
+    private void CancelTicketEdit()
+    {
+        editingTicketId = 0;
+        editTicketType = string.Empty;
+        editTicketPrice = 0;
+    }
+
+    private async Task DeleteTicket(int ticketId)
+    {
+        await OnDeleteTicket.InvokeAsync(ticketId);
+    }
+} 

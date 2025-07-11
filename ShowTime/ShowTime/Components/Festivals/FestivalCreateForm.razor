@@ -1,0 +1,71 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Authorization
+@using System.ComponentModel.DataAnnotations
+
+<AuthorizeView Roles="Administrator">
+    <Authorized Context="authContext">
+        <div class="card add-festival-card">
+            <div class="card-body">
+                <h3 class="text-center mb-4">✨ Add New Festival</h3>
+                <EditForm Model="NewFestival" OnValidSubmit="HandleValidSubmit" FormName="AddFestivalForm">
+                    <DataAnnotationsValidator />
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">🎪 Festival Name</label>
+                            <InputText @bind-Value="NewFestival.Name" class="form-control form-control-modern" placeholder="Enter festival name"/>
+                            <ValidationMessage For="@(() => NewFestival.Name)" class="text-warning fw-bold" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">📍 Location</label>
+                            <InputText @bind-Value="NewFestival.Location" class="form-control form-control-modern" placeholder="Enter location"/>
+                            <ValidationMessage For="@(() => NewFestival.Location)" class="text-warning fw-bold" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">📅 Start Date</label>
+                            <InputDate @bind-Value="NewFestival.StartDate" class="form-control form-control-modern"/>
+                            <ValidationMessage For="@(() => NewFestival.StartDate)" class="text-warning fw-bold" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">📅 End Date</label>
+                            <InputDate @bind-Value="NewFestival.EndDate" class="form-control form-control-modern"/>
+                            <ValidationMessage For="@(() => NewFestival.EndDate)" class="text-warning fw-bold" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">🖼️ Splash Art URL</label>
+                            <InputText @bind-Value="NewFestival.SplashArt" class="form-control form-control-modern" placeholder="Enter image URL"/>
+                            <ValidationMessage For="@(() => NewFestival.SplashArt)" class="text-warning fw-bold" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">👥 Capacity</label>
+                            <InputNumber @bind-Value="NewFestival.Capacity" class="form-control form-control-modern" placeholder="Enter capacity"/>
+                            <ValidationMessage For="@(() => NewFestival.Capacity)" class="text-warning fw-bold" />
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-add btn-modern">
+                            <i class="fas fa-plus"></i> Add Festival
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public EventCallback<FestivalCreateDto> OnAddFestival { get; set; }
+    
+    private FestivalCreateDto NewFestival { get; set; } = new();
+    
+    private async Task HandleValidSubmit()
+    {
+        await OnAddFestival.InvokeAsync(NewFestival);
+        NewFestival = new FestivalCreateDto(); // Reset form
+    }
+} 

@@ -1,0 +1,83 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+
+<div class="festival-edit-form">
+    <h6 class="text-white mb-3">✏️ Edit Festival</h6>
+    <EditForm Model="UpdateFestival" OnValidSubmit="HandleValidSubmit" FormName="@FormName">
+        <DataAnnotationsValidator />
+        <div class="row">
+            <div class="col-md-6">
+                <label class="form-label">🎪 Festival Name</label>
+                <InputText @bind-Value="UpdateFestival.Name" class="form-control" />
+                <ValidationMessage For="@(() => UpdateFestival.Name)" class="text-warning fw-bold" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">📍 Location</label>
+                <InputText @bind-Value="UpdateFestival.Location" class="form-control" />
+                <ValidationMessage For="@(() => UpdateFestival.Location)" class="text-warning fw-bold" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <label class="form-label">📅 Start Date</label>
+                <InputDate @bind-Value="UpdateFestival.StartDate" class="form-control" />
+                <ValidationMessage For="@(() => UpdateFestival.StartDate)" class="text-warning fw-bold" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">📅 End Date</label>
+                <InputDate @bind-Value="UpdateFestival.EndDate" class="form-control" />
+                <ValidationMessage For="@(() => UpdateFestival.EndDate)" class="text-warning fw-bold" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <label class="form-label">🖼️ Splash Art URL</label>
+                <InputText @bind-Value="UpdateFestival.SplashArt" class="form-control" />
+                <ValidationMessage For="@(() => UpdateFestival.SplashArt)" class="text-warning fw-bold" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">👥 Capacity</label>
+                <InputNumber @bind-Value="UpdateFestival.Capacity" class="form-control" />
+                <ValidationMessage For="@(() => UpdateFestival.Capacity)" class="text-warning fw-bold" />
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-save">
+                <i class="fas fa-check"></i> Save Changes
+            </button>
+            <button type="button" class="btn btn-cancel" @onclick="OnCancel">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public FestivalGetDto Festival { get; set; } = new();
+    [Parameter] public EventCallback<FestivalUpdateDto> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public string FormName { get; set; } = "EditFestivalForm";
+    
+    private FestivalUpdateDto UpdateFestival { get; set; } = new();
+    
+    protected override void OnParametersSet()
+    {
+        UpdateFestival = new FestivalUpdateDto
+        {
+            Id = Festival.Id,
+            Name = Festival.Name,
+            Location = Festival.Location,
+            StartDate = Festival.StartDate,
+            EndDate = Festival.EndDate,
+            SplashArt = Festival.SplashArt,
+            Capacity = Festival.Capacity
+        };
+    }
+    
+    private async Task HandleValidSubmit()
+    {
+        await OnSave.InvokeAsync(UpdateFestival);
+    }
+} 

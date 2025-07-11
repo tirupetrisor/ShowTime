@@ -1,0 +1,52 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+
+<div class="edit-form">
+    <h6 class="text-white mb-3">✏️ Edit Ticket</h6>
+    <EditForm Model="UpdateTicket" OnValidSubmit="HandleValidSubmit" FormName="@FormName">
+        <DataAnnotationsValidator />
+        <div class="mb-3">
+            <label class="form-label">🎟️ Type</label>
+            <InputText @bind-Value="UpdateTicket.Type" class="form-control"/>
+            <ValidationMessage For="@(() => UpdateTicket.Type)" class="text-warning fw-bold" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">💰 Price ($)</label>
+            <InputNumber @bind-Value="UpdateTicket.Price" step="0.01" class="form-control"/>
+            <ValidationMessage For="@(() => UpdateTicket.Price)" class="text-warning fw-bold" />
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-save">
+                <i class="fas fa-check"></i> Save
+            </button>
+            <button type="button" class="btn btn-cancel" @onclick="OnCancel">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public TicketGetDto Ticket { get; set; } = new();
+    [Parameter] public EventCallback<TicketUpdateDto> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public string FormName { get; set; } = "EditTicketForm";
+    
+    private TicketUpdateDto UpdateTicket { get; set; } = new();
+    
+    protected override void OnParametersSet()
+    {
+        UpdateTicket = new TicketUpdateDto
+        {
+            Type = Ticket.Type,
+            Price = Ticket.Price
+        };
+    }
+    
+    private async Task HandleValidSubmit()
+    {
+        await OnSave.InvokeAsync(UpdateTicket);
+    }
+} 

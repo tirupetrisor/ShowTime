@@ -8,6 +8,6 @@ namespace ShowTime.BusinessLogic.Dtos;
 
 public class LoginResponseDto
 {
-
+    public int UserId { get; set; }
     public int Role { get; set; }
 }

@@ -1,0 +1,59 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Authorization
+@using System.ComponentModel.DataAnnotations
+
+<AuthorizeView Roles="Administrator">
+    <Authorized Context="authContext">
+        <div class="card add-ticket-card">
+            <div class="card-body">
+                <h3 class="text-center mb-4">✨ Add New Ticket</h3>
+                <EditForm Model="NewTicket" OnValidSubmit="HandleValidSubmit" FormName="AddTicketForm">
+                    <DataAnnotationsValidator />
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">🎪 Festival</label>
+                            <select @bind="NewTicket.FestivalId" class="form-control form-control-modern">
+                                <option value="0">Select Festival</option>
+                                @foreach (var festival in AllFestivals)
+                                {
+                                    <option value="@festival.Id">@festival.Name</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => NewTicket.FestivalId)" class="text-warning fw-bold" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">🎟️ Ticket Type</label>
+                            <InputText @bind-Value="NewTicket.Type" class="form-control form-control-modern" placeholder="e.g., VIP, General, Early Bird"/>
+                            <ValidationMessage For="@(() => NewTicket.Type)" class="text-warning fw-bold" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">💰 Price ($)</label>
+                            <InputNumber @bind-Value="NewTicket.Price" step="0.01" class="form-control form-control-modern" placeholder="0.00"/>
+                            <ValidationMessage For="@(() => NewTicket.Price)" class="text-warning fw-bold" />
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-add btn-modern">
+                            <i class="fas fa-plus"></i> Add Ticket
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public IList<FestivalGetDto> AllFestivals { get; set; } = new List<FestivalGetDto>();
+    [Parameter] public EventCallback<TicketCreateDto> OnAddTicket { get; set; }
+    
+    private TicketCreateDto NewTicket { get; set; } = new();
+    
+    private async Task HandleValidSubmit()
+    {
+        await OnAddTicket.InvokeAsync(NewTicket);
+        NewTicket = new TicketCreateDto(); // Reset form
+    }
+} 

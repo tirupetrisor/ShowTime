@@ -1,0 +1,37 @@
+@using ShowTime.DataAccess.Models
+@using Microsoft.AspNetCore.Components
+
+<h2 class="section-title">👥 System Users</h2>
+
+@if (FilteredUsers.Count == 0 && AllUsers.Count > 0)
+{
+    <NoResults Icon="🔍" Title="No users found!" Message="Try adjusting your search criteria or clear the filters" />
+}
+else if (AllUsers.Count == 0)
+{
+    <NoResults Icon="👥" Title="No users in the system yet!" Message="Users will appear here as they register" CssClass="no-users" />
+}
+else
+{
+    <div class="row">
+        @foreach (var user in FilteredUsers)
+        {
+            <UserCard User="@user" 
+                     IsEditing="@(EditingUserId == user.Id)"
+                     OnStartEdit="@(() => OnStartEdit.InvokeAsync(user))"
+                     OnSaveEdit="@OnSaveEdit"
+                     OnCancelEdit="@OnCancelEdit"
+                     OnDelete="@OnDelete" />
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public IList<User> AllUsers { get; set; } = new List<User>();
+    [Parameter] public IList<User> FilteredUsers { get; set; } = new List<User>();
+    [Parameter] public int? EditingUserId { get; set; }
+    [Parameter] public EventCallback<User> OnStartEdit { get; set; }
+    [Parameter] public EventCallback<User> OnSaveEdit { get; set; }
+    [Parameter] public EventCallback OnCancelEdit { get; set; }
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
+} 

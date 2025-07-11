@@ -1,0 +1,11 @@
+@using Microsoft.AspNetCore.Components
+
+<div class="page-title-section">
+    <h1 class="page-title">@Title</h1>
+    <p class="page-subtitle">@Subtitle</p>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Subtitle { get; set; } = "";
+} 

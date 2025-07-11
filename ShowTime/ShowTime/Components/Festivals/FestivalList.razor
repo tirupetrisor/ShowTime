@@ -1,0 +1,48 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Authorization
+
+<h2 class="section-title">🌟 Our Festivals</h2>
+
+@if (FilteredFestivals.Count == 0 && AllFestivals.Count > 0)
+{
+    <NoResults Icon="🔍" Title="No festivals found!" Message="Try adjusting your search criteria or clear the filters" />
+}
+else if (AllFestivals.Count == 0)
+{
+    <NoResults Icon="🎭" Title="No festivals registered yet!" CssClass="no-festivals">
+        <AuthorizeView Roles="Administrator">
+            <Authorized>
+                <p>Start by adding your first festival above</p>
+            </Authorized>
+        </AuthorizeView>
+    </NoResults>
+}
+else
+{
+    <div class="row">
+        @foreach (var festival in FilteredFestivals)
+        {
+            <FestivalCard Festival="@festival" 
+                         IsEditing="@(EditingFestivalId == festival.Id)"
+                         OnStartEdit="@(() => OnStartEdit.InvokeAsync(festival))"
+                         OnSaveEdit="@((updateDto) => OnSaveEdit.InvokeAsync(updateDto))"
+                         OnCancelEdit="@(() => OnCancelEdit.InvokeAsync())"
+                         OnDelete="@(() => OnDeleteFestival.InvokeAsync(festival.Id))"
+                         OnViewLineup="@(() => OnViewLineup.InvokeAsync(festival))"
+                         OnViewTickets="@(() => OnViewTickets.InvokeAsync(festival))" />
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public IList<FestivalGetDto> AllFestivals { get; set; } = new List<FestivalGetDto>();
+    [Parameter] public IList<FestivalGetDto> FilteredFestivals { get; set; } = new List<FestivalGetDto>();
+    [Parameter] public int? EditingFestivalId { get; set; }
+    [Parameter] public EventCallback<FestivalGetDto> OnStartEdit { get; set; }
+    [Parameter] public EventCallback<FestivalUpdateDto> OnSaveEdit { get; set; }
+    [Parameter] public EventCallback OnCancelEdit { get; set; }
+    [Parameter] public EventCallback<int> OnDeleteFestival { get; set; }
+    [Parameter] public EventCallback<FestivalGetDto> OnViewLineup { get; set; }
+    [Parameter] public EventCallback<FestivalGetDto> OnViewTickets { get; set; }
+} 

@@ -1,0 +1,52 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Authorization
+@using System.ComponentModel.DataAnnotations
+
+<AuthorizeView Roles="Administrator">
+    <Authorized Context="authContext">
+        <div class="card add-artist-card">
+            <div class="card-body">
+                <h3 class="text-center mb-4">✨ Add New Artist</h3>
+                <EditForm Model="NewArtist" OnValidSubmit="HandleValidSubmit" FormName="AddArtistForm">
+                    <DataAnnotationsValidator />
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">🎤 Artist Name</label>
+                            <InputText @bind-Value="NewArtist.Name" class="form-control form-control-modern" placeholder="Enter artist name"/>
+                            <ValidationMessage For="@(() => NewArtist.Name)" class="text-warning fw-bold" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">🎵 Genre</label>
+                            <InputText @bind-Value="NewArtist.Genre" class="form-control form-control-modern" placeholder="Enter genre"/>
+                            <ValidationMessage For="@(() => NewArtist.Genre)" class="text-warning fw-bold" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">🖼️ Image URL</label>
+                            <InputText @bind-Value="NewArtist.Image" class="form-control form-control-modern" placeholder="Enter image URL"/>
+                            <ValidationMessage For="@(() => NewArtist.Image)" class="text-warning fw-bold" />
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-add btn-modern">
+                            <i class="fas fa-plus"></i> Add Artist
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public EventCallback<ArtistCreateDto> OnAddArtist { get; set; }
+    
+    private ArtistCreateDto NewArtist { get; set; } = new();
+    
+    private async Task HandleValidSubmit()
+    {
+        await OnAddArtist.InvokeAsync(NewArtist);
+        NewArtist = new ArtistCreateDto(); // Reset form
+    }
+} 

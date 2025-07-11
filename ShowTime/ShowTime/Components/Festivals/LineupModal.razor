@@ -1,0 +1,151 @@
+@using ShowTime.BusinessLogic.Dtos
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Authorization
+
+@if (IsVisible)
+{
+    <div class="lineup-modal-overlay" @onclick="OnClose">
+        <div class="lineup-modal-container" @onclick:stopPropagation="true">
+            <!-- Modern Header -->
+            <div class="lineup-modal-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="fa-solid fa-music"></i>
+                    </div>
+                    <div class="header-text">
+                        <h3 class="modal-title">@Festival.Name</h3>
+                        <p class="modal-subtitle">Lineup Management</p>
+                    </div>
+                </div>
+                <button type="button" class="close-btn" @onclick="OnClose">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="lineup-modal-body">
+                <!-- Add New Artist Section -->
+                <AuthorizeView Roles="Administrator">
+                    <Authorized Context="authContext">
+                        <div class="add-artist-section">
+                            <div class="section-header">
+                                <h5><i class="fa-solid fa-plus"></i> Add Artist to Lineup</h5>
+                            </div>
+                            <div class="add-form">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Artist</label>
+                                        <select @bind="selectedArtistId" class="custom-select">
+                                            <option value="0">Select Artist...</option>
+                                            @foreach (var artist in AllArtists)
+                                            {
+                                                <option value="@artist.Id">@artist.Name - @artist.Genre</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Stage</label>
+                                        <input type="text" @bind="newStage" class="custom-input" placeholder="Stage name..." />
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Start Time</label>
+                                        <input type="datetime-local" @bind="newStartTime" class="custom-input" />
+                                    </div>
+                                    <div class="form-group">
+                                        <button type="button" class="add-btn" @onclick="AddArtistToLineup">
+                                            <i class="fa-solid fa-plus"></i>
+                                            Add to Lineup
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+
+                <!-- Current Lineup Section -->
+                <div class="lineup-section">
+                    <div class="section-header">
+                        <h5><i class="fa-solid fa-list"></i> Current Lineup</h5>
+                    </div>
+                    
+                    @if (Artists != null && Artists.Any())
+                    {
+                        <div class="artists-grid">
+                            @foreach (var artist in Artists)
+                            {
+                                <div class="artist-card">
+                                    <div class="artist-content">
+                                        <div class="artist-info">
+                                            <h6 class="artist-name">@artist.Name</h6>
+                                            <p class="artist-genre">@artist.Genre</p>
+                                        </div>
+                                        <AuthorizeView Roles="Administrator">
+                                            <Authorized Context="authContext">
+                                                <button type="button" class="remove-btn" 
+                                                        @onclick="() => RemoveArtistFromLineup(artist.Id)"
+                                                        title="Remove from lineup">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </Authorized>
+                                        </AuthorizeView>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="fa-solid fa-music"></i>
+                            <p>No artists in the lineup yet</p>
+                            <span>Add some artists to get started!</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; } = false;
+    [Parameter] public FestivalGetDto Festival { get; set; } = new();
+    [Parameter] public IList<ArtistGetDto> Artists { get; set; } = new List<ArtistGetDto>();
+    [Parameter] public IList<ArtistGetDto> AllArtists { get; set; } = new List<ArtistGetDto>();
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<LineupCreateDto> OnAddLineup { get; set; }
+    [Parameter] public EventCallback<int> OnRemoveLineup { get; set; }
+
+    private int selectedArtistId = 0;
+    private string newStage = string.Empty;
+    private DateTime newStartTime = DateTime.Now;
+
+    private async Task AddArtistToLineup()
+    {
+        if (selectedArtistId > 0 && !string.IsNullOrEmpty(newStage))
+        {
+            var lineupDto = new LineupCreateDto
+            {
+                FestivalId = Festival.Id,
+                ArtistId = selectedArtistId,
+                Stage = newStage,
+                StartTime = newStartTime
+            };
+
+            await OnAddLineup.InvokeAsync(lineupDto);
+            
+            // Reset form
+            selectedArtistId = 0;
+            newStage = string.Empty;
+            newStartTime = DateTime.Now;
+        }
+    }
+
+    private async Task RemoveArtistFromLineup(int artistId)
+    {
+        await OnRemoveLineup.InvokeAsync(artistId);
+    }
+} 
