@@ -1,0 +1,16 @@
+.stat-card {
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    color: #111827;
+    border: 1px solid #e5e7eb;
+}
+
+.stat-card.positive { background: #ecfdf5; border-color: #a7f3d0; }
+.stat-card.neutral { background: #eff6ff; border-color: #bfdbfe; }
+.stat-card.negative { background: #fef2f2; border-color: #fecaca; }
+
+.stat-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem; }
+.stat-value { font-size: 1.5rem; font-weight: 800; }
+
+.sentiment-summary { color: #374151; }
+

@@ -1,9 +1,9 @@
 /* Add Booking Card - Similar to add-artist-card */
 .add-booking-card {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #14b8a6 0%, #059669 100%);
     border: none;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3);
+    box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3);
     color: white;
     margin-bottom: 3rem;
 }
@@ -37,6 +37,8 @@
     transition: all 0.3s ease;
 }
 
+/* quantity icon now in label; remove input-group addon styling */
+
 .form-control-modern::placeholder {
     color: rgba(255, 255, 255, 0.7);
 }
@@ -54,7 +56,7 @@
 }
 
 .btn-add {
-    background: linear-gradient(45deg, #51cf66, #40c057);
+    background: linear-gradient(45deg, #10b981, #34d399);
     color: white;
     border: none;
     border-radius: 25px;
@@ -68,7 +70,7 @@
 
 .btn-add:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(81, 207, 102, 0.4);
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
     color: white;
 }
 

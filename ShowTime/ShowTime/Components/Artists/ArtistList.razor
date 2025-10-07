@@ -2,21 +2,11 @@
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Authorization
 
-<h2 class="section-title">🌟 Our Artists</h2>
 
-@if (FilteredArtists.Count == 0 && AllArtists.Count > 0)
+
+@if (AllArtists.Count == 0)
 {
-    <NoResults Icon="🔍" Title="No artists found!" Message="Try adjusting your search criteria or clear the filters" />
-}
-else if (AllArtists.Count == 0)
-{
-    <NoResults Icon="🎭" Title="No artists registered yet!" CssClass="no-artists">
-        <AuthorizeView Roles="Administrator">
-            <Authorized Context="authContext">
-                <p>Start by adding your first artist above</p>
-            </Authorized>
-        </AuthorizeView>
-    </NoResults>
+    <div class="text-center py-4">No artists available.</div>
 }
 else
 {

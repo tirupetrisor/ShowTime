@@ -6,7 +6,7 @@
             <h5 class="text-center mb-3">🔍 Search & Filter @Title</h5>
             <div class="row g-3">
                 @ChildContent
-                <div class="col-md-2 d-flex align-items-end">
+                <div class="@ClearColumnClasses">
                     <button type="button" class="btn btn-clear w-100" @onclick="OnClearFilters">
                         🗑️ Clear
                     </button>
@@ -30,4 +30,5 @@
     [Parameter] public EventCallback OnClearFilters { get; set; }
     [Parameter] public bool ShowResults { get; set; } = false;
     [Parameter] public string ResultsMessage { get; set; } = "";
+    [Parameter] public string ClearColumnClasses { get; set; } = "col-md-2 d-flex align-items-end";
 } 

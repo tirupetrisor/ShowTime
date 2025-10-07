@@ -21,7 +21,7 @@
     transform: translateX(-50%);
     width: 60px;
     height: 4px;
-    background: linear-gradient(90deg, #3498db, #9b59b6, #e74c3c);
+    background: linear-gradient(90deg, #14b8a6, #f59e0b, #ef4444);
     border-radius: 2px;
 }
 
@@ -60,7 +60,7 @@
     left: 0;
     width: 30px;
     height: 2px;
-    background: linear-gradient(90deg, #3498db, #9b59b6);
+    background: linear-gradient(90deg, #14b8a6, #f59e0b);
 }
 
 .form-row {
@@ -101,19 +101,19 @@
 
 .form-control:focus {
     outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    border-color: #14b8a6;
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
     transform: translateY(-1px);
 }
 
 .form-control.is-invalid {
-    border-color: #e74c3c;
-    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 .form-control.is-valid {
-    border-color: #27ae60;
-    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
 .form-control.textarea {
@@ -151,7 +151,7 @@
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #3498db, #2980b9);
+    background: linear-gradient(135deg, #14b8a6, #059669);
     border: none;
     color: white;
     padding: 0.75rem 2rem;
@@ -165,7 +165,7 @@
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #2980b9, #21618c);
+    background: linear-gradient(135deg, #059669, #047857);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -254,10 +254,10 @@
 
 /* Add Festival Card */
 .add-festival-card {
-    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    background: linear-gradient(135deg, #14b8a6 0%, #059669 100%);
     border: none;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(155, 89, 182, 0.3);
+    box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3);
     color: white;
     margin-bottom: 3rem;
 }
@@ -287,7 +287,7 @@
 }
 
 .btn-add {
-    background: linear-gradient(45deg, #e67e22, #d35400);
+    background: linear-gradient(45deg, #10b981, #34d399);
     color: white;
     border: none;
     border-radius: 25px;
@@ -301,7 +301,7 @@
 
 .btn-add:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(230, 126, 34, 0.4);
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
     color: white;
 }
 

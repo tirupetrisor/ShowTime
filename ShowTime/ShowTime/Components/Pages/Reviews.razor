@@ -1,0 +1,121 @@
+@page "/reviews"
+@using ShowTime.BusinessLogic.Abstractions
+@using ShowTime.BusinessLogic.Dtos
+@attribute [Authorize(Roles = "Administrator")]
+@rendermode InteractiveServer
+
+@inject IReviewService ReviewService
+@inject IFestivalService FestivalService
+
+<PageTitle>Reviews & Sentiment - ShowTime</PageTitle>
+
+<div class="container">
+<PageHeader Title="📝 Reviews & Sentiment" Subtitle="Automatic ML.NET analysis: positive, negative, neutral" />
+
+    <SearchFilter Title="Reviews" OnClearFilters="@ClearFilters"
+                  ShowResults="@ShowResults" ResultsMessage="@ResultsMessage"
+                  ClearColumnClasses="col-md-3 d-flex align-items-end">
+        <div class="col-md-3 offset-md-3">
+            <label class="form-label fw-bold text-center d-block">🎪 Select festival</label>
+            <select class="form-select search-input text-center" 
+                    @bind="selectedFestivalId" 
+                    @bind:after="LoadSummaryAsync">
+                <option value="0">All festivals</option>
+                @if (festivals != null)
+                {
+                    foreach (var f in festivals)
+                    {
+                        <option value="@f.Id">@f.Name</option>
+                    }
+                }
+            </select>
+        </div>
+    </SearchFilter>
+
+    <div class="row g-3 mt-1">
+        <div class="col-md-4">
+            <div class="stat-card positive">
+                <div class="stat-title">Positive</div>
+                <div class="stat-value">@positiveCount</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card neutral">
+                <div class="stat-title">Neutral</div>
+                <div class="stat-value">@neutralCount</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card negative">
+                <div class="stat-title">Negative</div>
+                <div class="stat-value">@negativeCount</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sentiment-summary mt-3 text-center">
+        <strong>@GetPositivePercentage()% positive reviews</strong> out of @totalReviews total
+        @if (selectedFestivalId > 0 && selectedFestival != null)
+        {
+            <span> for <strong>@selectedFestival.Name</strong></span>
+        }
+        .
+    </div>
+</div>
+
+@code {
+    private int positiveCount = 0;
+    private int neutralCount = 0;
+    private int negativeCount = 0;
+    private int totalReviews = 0;
+    private int selectedFestivalId = 0; // 0 = all
+    private IList<FestivalGetDto> festivals = new List<FestivalGetDto>();
+    private FestivalGetDto? selectedFestival;
+    private bool ShowResults => selectedFestivalId > 0;
+    private string ResultsMessage => selectedFestivalId > 0
+        ? $"Found {totalReviews} reviews for {selectedFestival?.Name ?? "selected festival"}"
+        : $"Found {totalReviews} reviews total";
+
+    protected override async Task OnInitializedAsync()
+    {
+        festivals = await FestivalService.GetAllFestivalsAsync();
+        await LoadSummaryAsync();
+    }
+
+    private int GetPositivePercentage()
+    {
+        if (totalReviews <= 0) return 0;
+        return (int)Math.Round(100.0 * positiveCount / totalReviews);
+    }
+
+    private async Task LoadSummaryAsync()
+    {
+        if (selectedFestivalId > 0)
+        {
+            selectedFestival = festivals.FirstOrDefault(f => f.Id == selectedFestivalId);
+            var s = await ReviewService.GetSentimentSummaryForFestivalAsync(selectedFestivalId);
+            positiveCount = s.Positive;
+            neutralCount = s.Neutral;
+            negativeCount = s.Negative;
+            totalReviews = s.Total;
+        }
+        else
+        {
+            selectedFestival = null;
+            var s = await ReviewService.GetSentimentSummaryAsync();
+            positiveCount = s.Positive;
+            neutralCount = s.Neutral;
+            negativeCount = s.Negative;
+            totalReviews = s.Total;
+        }
+    }
+
+    private async Task ClearFilters()
+    {
+        selectedFestivalId = 0;
+        await LoadSummaryAsync();
+        StateHasChanged();
+    }
+}
+
+

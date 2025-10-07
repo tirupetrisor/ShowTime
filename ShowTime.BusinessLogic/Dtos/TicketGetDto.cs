@@ -7,4 +7,5 @@ public class TicketGetDto
     public string Type { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public string FestivalName { get; set; } = string.Empty;
+    public int Capacity { get; set; }
 } 

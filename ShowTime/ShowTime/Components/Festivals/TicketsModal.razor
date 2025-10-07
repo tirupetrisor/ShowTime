@@ -1,6 +1,8 @@
 @using ShowTime.BusinessLogic.Dtos
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Authorization
+@inject ShowTime.Services.CartService CartSvc
+@inject ISnackbar Snackbar
 
 @if (IsVisible)
 {
@@ -40,6 +42,10 @@
                                     <div class="form-group">
                                         <label>Price ($)</label>
                                         <input type="number" @bind="newTicketPrice" class="custom-input" placeholder="0.00" step="0.01" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Capacity</label>
+                                        <input type="number" @bind="newTicketCapacity" class="custom-input" placeholder="0" min="1" />
                                     </div>
                                 </div>
                                 <div class="form-actions">
@@ -82,6 +88,10 @@
                                                     <label>Price</label>
                                                     <input type="number" @bind="editTicketPrice" class="edit-input" step="0.01" />
                                                 </div>
+                                                <div class="edit-field">
+                                                    <label>Capacity</label>
+                                                    <input type="number" @bind="editTicketCapacity" class="edit-input" min="1" />
+                                                </div>
                                             </div>
                                             <div class="edit-actions">
                                                 <button class="save-btn" @onclick="SaveTicketEdit">
@@ -100,6 +110,11 @@
                                             <div class="ticket-info">
                                                 <h6 class="ticket-type">@ticket.Type</h6>
                                                 <div class="ticket-price">$@ticket.Price.ToString("F2")</div>
+                                                <AuthorizeView Roles="Administrator">
+                                                    <Authorized>
+                                                        <div class="ticket-capacity">Capacity: @ticket.Capacity</div>
+                                                    </Authorized>
+                                                </AuthorizeView>
                                             </div>
                                             <AuthorizeView Roles="Administrator">
                                                 <Authorized Context="authContext">
@@ -115,6 +130,25 @@
                                                             <i class="fa-solid fa-trash"></i>
                                                         </button>
                                                     </div>
+                                                </Authorized>
+                                            </AuthorizeView>
+
+                                            <!-- Add to Cart for logged-in non-admin users -->
+                                            <AuthorizeView>
+                                                <Authorized Context="userCtx">
+                                                    <AuthorizeView Roles="Administrator">
+                                                        <NotAuthorized Context="nonAdminCtx">
+                                                            <div class="ticket-actions">
+                                                                <button type="button" class="add-btn" @onclick="() => AddToCart(ticket.Id)">
+                                                                    <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                                                                </button>
+                                                                @if (addMessages.TryGetValue(ticket.Id, out var msg) && !string.IsNullOrEmpty(msg))
+                                                                {
+                                                                    <span class="add-msg">@msg</span>
+                                                                }
+                                                            </div>
+                                                        </NotAuthorized>
+                                                    </AuthorizeView>
                                                 </Authorized>
                                             </AuthorizeView>
                                         </div>
@@ -148,20 +182,23 @@
 
     private string newTicketType = string.Empty;
     private decimal newTicketPrice = 0;
+    private int newTicketCapacity = 0;
 
     private int editingTicketId = 0;
     private string editTicketType = string.Empty;
     private decimal editTicketPrice = 0;
+    private int editTicketCapacity = 0;
 
     private async Task AddTicket()
     {
-        if (!string.IsNullOrEmpty(newTicketType) && newTicketPrice > 0)
+        if (!string.IsNullOrEmpty(newTicketType) && newTicketPrice > 0 && newTicketCapacity > 0)
         {
             var ticketDto = new TicketCreateDto
             {
                 FestivalId = Festival.Id,
                 Type = newTicketType,
-                Price = newTicketPrice
+                Price = newTicketPrice,
+                Capacity = newTicketCapacity
             };
 
             await OnAddTicket.InvokeAsync(ticketDto);
@@ -169,6 +206,7 @@
             // Reset form
             newTicketType = string.Empty;
             newTicketPrice = 0;
+            newTicketCapacity = 0;
         }
     }
 
@@ -177,16 +215,18 @@
         editingTicketId = ticket.Id;
         editTicketType = ticket.Type;
         editTicketPrice = ticket.Price;
+        editTicketCapacity = ticket.Capacity;
     }
 
     private async Task SaveTicketEdit()
     {
-        if (!string.IsNullOrEmpty(editTicketType) && editTicketPrice > 0)
+        if (!string.IsNullOrEmpty(editTicketType) && editTicketPrice > 0 && editTicketCapacity > 0)
         {
             var updateDto = new TicketUpdateDto
             {
                 Type = editTicketType,
-                Price = editTicketPrice
+                Price = editTicketPrice,
+                Capacity = editTicketCapacity
             };
 
             await OnUpdateTicket.InvokeAsync((editingTicketId, updateDto));
@@ -199,10 +239,43 @@
         editingTicketId = 0;
         editTicketType = string.Empty;
         editTicketPrice = 0;
+        editTicketCapacity = 0;
     }
 
     private async Task DeleteTicket(int ticketId)
     {
         await OnDeleteTicket.InvokeAsync(ticketId);
+    }
+
+    private Dictionary<int, string> addMessages = new();
+
+    private async Task AddToCart(int ticketId)
+    {
+        try
+        {
+            await CartSvc.AddAsync(ticketId, 1);
+            Snackbar.Add("Added to cart", Severity.Success);
+            addMessages[ticketId] = "Added to cart";
+            StateHasChanged();
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(2500);
+                addMessages.Remove(ticketId);
+                await InvokeAsync(StateHasChanged);
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Add to cart failed: {ex.Message}");
+            Snackbar.Add(ex.Message, Severity.Error);
+            addMessages[ticketId] = ex.Message;
+            StateHasChanged();
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(2500);
+                addMessages.Remove(ticketId);
+                await InvokeAsync(StateHasChanged);
+            });
+        }
     }
 } 

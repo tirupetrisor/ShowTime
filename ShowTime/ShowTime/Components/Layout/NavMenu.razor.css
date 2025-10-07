@@ -1,6 +1,6 @@
 /* Modern Navbar Styles */
 .modern-navbar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #14b8a6 0%, #059669 100%);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
@@ -39,7 +39,7 @@
 }
 
 .brand-link:hover {
-    color: #ffd93d;
+    color: #fbbf24;
     transform: scale(1.05);
     text-decoration: none;
 }
@@ -51,7 +51,7 @@
 }
 
 .brand-text {
-    background: linear-gradient(45deg, #ffd93d, #ff6b6b);
+    background: linear-gradient(45deg, #f59e0b, #d97706);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -103,9 +103,9 @@
 }
 
 .nav-link.active {
-    background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+    background: linear-gradient(45deg, #f59e0b, #d97706);
     color: #ffffff !important;
-    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
     transform: translateY(-2px);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
     font-weight: 700;
@@ -119,6 +119,24 @@
 .nav-icon {
     font-size: 1.2rem;
     margin-right: 0.5rem;
+}
+
+
+/* Cart badge styling inside nav links */
+.nav-link .cart-badge {
+    background: linear-gradient(45deg, #f59e0b, #d97706);
+    color: #ffffff;
+    border-radius: 999px;
+    padding: 0 8px;
+    font-size: 12px;
+    margin-left: 8px;
+    line-height: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
 }
 
 
@@ -228,7 +246,7 @@
         top: 100%;
         left: 0;
         right: 0;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #14b8a6 0%, #059669 100%);
         flex-direction: column !important;
         gap: 0;
         transform: translateY(-100%);
@@ -250,22 +268,18 @@
         border-radius: 0;
         border: none;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        background: transparent;
-        justify-content: flex-start;
-        color: #ffffff !important;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        background: rgba(255, 255, 255, 0.05);
     }
 
     .nav-link .nav-text {
         color: #ffffff !important;
+        font-weight: 600;
     }
 
     .nav-link:hover {
         background: rgba(255, 255, 255, 0.15);
         transform: none;
         box-shadow: none;
-        color: #ffffff !important;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
     }
 
     .nav-link:hover .nav-text {
@@ -273,12 +287,10 @@
     }
 
     .nav-link.active {
-        background: linear-gradient(90deg, #ff6b6b, #ffd93d);
-        box-shadow: none;
-        transform: none;
+        background: linear-gradient(45deg, #f59e0b, #d97706);
         color: #ffffff !important;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
-        font-weight: 700;
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+        transform: none;
     }
 
     .nav-link.active .nav-text {
@@ -287,41 +299,51 @@
     }
 
     .navbar-actions {
-        gap: 0.5rem;
+        position: absolute;
+        right: 1rem;
     }
 
     .action-btn {
-        width: 45px;
-        height: 45px;
+        width: 40px;
+        height: 40px;
     }
 
     .brand-link {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
     }
 
     .brand-icon {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
     }
 }
 
 @media (max-width: 480px) {
     .navbar-content {
         padding: 0 0.5rem;
-        min-height: 60px;
     }
 
     .brand-link {
-        font-size: 1.1rem;
+        font-size: 1rem;
     }
 
     .brand-icon {
-        font-size: 1.5rem;
-        margin-right: 0.3rem;
+        font-size: 1.2rem;
+        margin-right: 0.25rem;
     }
 
     .action-btn {
-        width: 40px;
-        height: 40px;
+        width: 35px;
+        height: 35px;
+    }
+}
+
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
     }
 }
 

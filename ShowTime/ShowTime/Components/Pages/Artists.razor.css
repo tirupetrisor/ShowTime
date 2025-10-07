@@ -1,336 +1,295 @@
-/* Page Title Section */
-.page-title-section {
-    text-align: center;
-    padding: 2rem 0 1rem 0;
-    margin-bottom: 2rem;
-}
-
-.page-title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-    background: linear-gradient(45deg, #667eea, #764ba2);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.page-subtitle {
-    font-size: 1.2rem;
-    color: #6c757d;
-    font-weight: 500;
-    margin: 0;
-}
-
-/* Search Section */
-.search-filter-section {
-    margin-bottom: 2rem;
-}
-
-.search-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    border-radius: 20px;
-    color: white;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-}
-
-.search-card .card-body {
-    padding: 2rem;
-}
-
-.search-input {
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 15px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    padding: 12px 16px;
-    backdrop-filter: blur(10px);
-}
-
-.search-input::placeholder {
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.search-input:focus {
-    border-color: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-}
-
-.search-input option {
-    background: #2c3e50;
-    color: white;
-}
-
-.btn-clear {
-    background: linear-gradient(45deg, #868e96, #6c757d);
-    color: white;
-    border: none;
-    border-radius: 15px;
-    padding: 12px 16px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.btn-clear:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(134, 142, 150, 0.4);
-    color: white;
-}
-
-.results-badge {
-    background: linear-gradient(45deg, #43e97b, #38f9d7);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-/* Add Artist Card */
-.add-artist-card {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    border: none;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3);
-    color: white;
-    margin-bottom: 3rem;
-}
-
-.add-artist-card .card-body {
-    padding: 2rem;
-}
-
-/* Artist Cards */
-.artist-card {
-    border: none;
-    border-radius: 20px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
-    background: white;
-}
-
-.artist-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-}
-
-.artist-image {
-    height: 250px;
-    object-fit: cover;
-    width: 100%;
-    transition: transform 0.3s ease;
-}
-
-.artist-card:hover .artist-image {
-    transform: scale(1.05);
-}
-
-.artist-info {
-    padding: 1.5rem;
-    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
-}
-
-.artist-name {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-}
-
-.artist-genre {
-    color: #7f8c8d;
-    font-size: 0.95rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.genre-badge {
-    background: linear-gradient(45deg, #667eea, #764ba2);
-    color: white;
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* Action Buttons */
-.action-buttons {
-    padding: 1rem 1.5rem;
-    background: #f8f9fa;
+.artists-pagination-bar {
     display: flex;
-    gap: 10px;
-    justify-content: space-between;
-}
-
-.btn-edit {
-    background: linear-gradient(45deg, #4ecdc4, #44a08d);
-    color: white;
-    border-radius: 20px;
-    padding: 8px 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.btn-edit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4);
-    color: white;
-}
-
-.btn-delete {
-    background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-    color: white;
-    border-radius: 20px;
-    padding: 8px 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.btn-delete:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
-    color: white;
-}
-
-/* Edit Form */
-.edit-form {
-    background: linear-gradient(145deg, #667eea, #764ba2);
-    padding: 1.5rem;
-    border-radius: 15px;
+    justify-content: center;
     margin-top: 1rem;
 }
 
-.edit-form .form-control {
-    border-radius: 10px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    margin-bottom: 1rem;
+.page-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 9999px;
+    padding: 0.25rem 0.75rem;
 }
 
-.edit-form .form-control:focus {
-    border-color: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
-    background: rgba(255, 255, 255, 0.2);
+.page-btn {
+    background: white;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 }
 
-.edit-form label {
-    color: white;
+.page-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-info {
     font-weight: 600;
+    color: #374151;
+}
+/* Artists Page Header */
+.artists-header {
+    background: linear-gradient(45deg, #14b8a6, #059669);
+    color: white;
+    padding: 3rem 0;
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.artists-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.artists-header p {
+    font-size: 1.1rem;
+    margin: 1rem 0 0 0;
+    opacity: 0.9;
+}
+
+/* Add Artist Button */
+.add-artist-btn {
+    background: linear-gradient(135deg, #14b8a6 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+    text-decoration: none;
+}
+
+.add-artist-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(20, 184, 166, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+/* Artist Grid */
+.artists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+/* Artist Stats */
+.artist-stats {
+    background: white;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    margin-bottom: 3rem;
+}
+
+.stats-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #134e4a;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    text-align: center;
+    padding: 1.5rem;
+    background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+    border-radius: 15px;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #14b8a6;
+    display: block;
     margin-bottom: 0.5rem;
 }
 
-.btn-save {
-    background: linear-gradient(45deg, #51cf66, #40c057);
-    color: white;
-    border-radius: 15px;
-    padding: 8px 20px;
+.stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     font-weight: 600;
+}
+
+/* Artist Form */
+.artist-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    margin-bottom: 3rem;
+}
+
+.form-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #134e4a;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #134e4a;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #14b8a6;
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+}
+
+.btn-submit {
+    background: linear-gradient(45deg, #14b8a6, #059669);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    font-size: 1rem;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(20, 184, 166, 0.3);
 }
 
 .btn-cancel {
-    background: linear-gradient(45deg, #868e96, #6c757d);
+    background: linear-gradient(45deg, #ef4444, #dc2626);
     color: white;
-    border-radius: 15px;
-    padding: 8px 20px;
-    font-weight: 600;
-}
-
-/* No Results/Artists Messages */
-.no-results {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: white;
-    border-radius: 20px;
-    font-size: 1.2rem;
-}
-
-.no-artists {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 20px;
-    font-size: 1.2rem;
-}
-
-.form-control-modern {
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 15px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    padding: 12px 20px;
-    backdrop-filter: blur(10px);
-    margin-bottom: 1rem;
-}
-
-.form-control-modern::placeholder {
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.form-control-modern:focus {
-    border-color: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-}
-
-.btn-add {
-    background: linear-gradient(45deg, #4facfe, #00f2fe);
-    color: white;
-    border-radius: 25px;
-    padding: 12px 30px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.3s ease;
     border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    font-size: 1rem;
+    margin-top: 1rem;
 }
 
-.btn-add:hover {
+.btn-cancel:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(79, 172, 254, 0.4);
-    color: white;
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
 }
 
-.btn-modern {
-    border-radius: 25px;
-    padding: 12px 30px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.3s ease;
-    border: none;
-}
-
-.section-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #2c3e50;
-    text-align: center;
+/* Search and Filter */
+.search-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     margin-bottom: 3rem;
-    position: relative;
 }
 
-.section-title::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 4px;
-    background: linear-gradient(45deg, #667eea, #764ba2);
-    border-radius: 2px;
+.search-input {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 15px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #14b8a6;
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+}
+
+/* Loading and Error States */
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem;
+    color: #14b8a6;
+    font-size: 1.2rem;
+}
+
+.error-message {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .artists-header {
+        padding: 2rem 0;
+    }
+    
+    .artists-header h1 {
+        font-size: 2rem;
+    }
+    
+    .artists-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .add-artist-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .artist-form,
+    .search-section {
+        padding: 1.5rem;
+    }
 } 

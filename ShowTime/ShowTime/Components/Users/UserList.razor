@@ -1,8 +1,6 @@
 @using ShowTime.DataAccess.Models
 @using Microsoft.AspNetCore.Components
 
-<h2 class="section-title">👥 System Users</h2>
-
 @if (FilteredUsers.Count == 0 && AllUsers.Count > 0)
 {
     <NoResults Icon="🔍" Title="No users found!" Message="Try adjusting your search criteria or clear the filters" />

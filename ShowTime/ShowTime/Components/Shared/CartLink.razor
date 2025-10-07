@@ -1,0 +1,45 @@
+@using ShowTime.Services
+@inject CartService Cart
+
+<NavLink class="nav-link" href="/cart">
+    <span class="nav-icon">🛒</span>
+    <span class="nav-text">Cart</span>
+    @if (count > 0)
+    {
+        <span class="cart-badge">@count</span>
+    }
+    </NavLink>
+
+@code {
+    private int count;
+
+    protected override void OnInitialized()
+    {
+        count = Cart.GetTotalCount();
+        Cart.OnChange += HandleChanged;
+    }
+
+    private void HandleChanged()
+    {
+        count = Cart.GetTotalCount();
+        InvokeAsync(StateHasChanged);
+    }
+}
+
+<style>
+    .cart-badge {
+        background: #e63946;
+        color: white;
+        border-radius: 999px;
+        padding: 0 8px;
+        font-size: 12px;
+        margin-left: 6px;
+        line-height: 18px;
+        height: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+

@@ -1,0 +1,177 @@
+@page "/admin"
+@using ShowTime.DataAccess.Models
+@using ShowTime.BusinessLogic.Abstractions
+@attribute [Authorize(Roles = "Administrator")]
+@rendermode InteractiveServer
+
+@inject IUserService UserService
+
+<PageTitle>Admin Dashboard - ShowTime</PageTitle>
+
+<div class="container">
+    <!-- Reviews Insights -->
+    <div class="mb-3">
+<PageHeader Title="👥 Users" Subtitle="Search and filter system users" />
+    </div>
+
+    <!-- Users Management (only users section remains on this page) -->
+    <div class="mb-3">
+        <SearchFilter Title="Users" OnClearFilters="@ClearFilters"
+                      ShowResults="@(!string.IsNullOrEmpty(selectedEmail) || !string.IsNullOrEmpty(selectedRole))"
+                      ResultsMessage="@($"Found {filteredUsers.Count} of {allUsers.Count} users")">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">📧 Filter by Email</label>
+                <select @bind="selectedEmail" @bind:after="FilterUsers" class="form-select search-input">
+                    <option value="">All Email Addresses</option>
+                    @foreach (var email in availableEmails)
+                    {
+                        <option value="@email">@email</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">👤 Filter by Role</label>
+                <select @bind="selectedRole" @bind:after="FilterUsers" class="form-select search-input">
+                    <option value="">All Roles</option>
+                    <option value="0">Administrator</option>
+                    <option value="1">Regular User</option>
+                </select>
+            </div>
+        </SearchFilter>
+
+        <UserList AllUsers="@allUsers"
+                  FilteredUsers="@pagedUsers"
+                  EditingUserId="@editingUserId"
+                  OnStartEdit="@HandleStartEdit"
+                  OnSaveEdit="@HandleSaveEdit"
+                  OnCancelEdit="@HandleCancelEdit"
+                  OnDelete="@HandleDeleteUser" />
+
+        <div class="users-pagination-bar">
+            <div class="page-controls">
+                <button type="button" class="page-btn" @onclick="UsersPrev" disabled="@(userCurrentPage <= 1)">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page @userCurrentPage of @UsersTotalPages</span>
+                <button type="button" class="page-btn" @onclick="UsersNext" disabled="@(userCurrentPage >= UsersTotalPages)">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    // Embedded Users management state
+    private IList<User> allUsers = new List<User>();
+    private IList<User> filteredUsers = new List<User>();
+    private int positiveCount = 0;
+    private int neutralCount = 0;
+    private int negativeCount = 0;
+    private int totalReviews = 0;
+
+    [Inject] private IReviewService ReviewService { get; set; } = default!;
+    private IList<User> pagedUsers = new List<User>();
+    private IList<string> availableEmails = new List<string>();
+    private int? editingUserId = null;
+    private string selectedEmail = string.Empty;
+    private string selectedRole = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadReviewsSummary();
+        await LoadUsers();
+    }
+    private async Task LoadReviewsSummary()
+    {
+        var (pos, neu, neg, total) = await ReviewService.GetSentimentSummaryAsync();
+        positiveCount = pos;
+        neutralCount = neu;
+        negativeCount = neg;
+        totalReviews = total;
+    }
+
+    private int GetPositivePercentage()
+    {
+        if (totalReviews <= 0) return 0;
+        return (int)Math.Round(100.0 * positiveCount / totalReviews);
+    }
+
+
+    private async Task LoadUsers()
+    {
+        allUsers = await UserService.GetAllUsersAsync();
+        availableEmails = allUsers.Select(u => u.Email).Distinct().OrderBy(e => e).ToList();
+        FilterUsers();
+    }
+
+    private void FilterUsers()
+    {
+        var filtered = allUsers.Where(user =>
+            (string.IsNullOrEmpty(selectedEmail) || user.Email.Equals(selectedEmail, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrEmpty(selectedRole) || user.Role.ToString() == selectedRole)
+        );
+
+        filteredUsers = filtered.OrderBy(u => u.Email).ToList();
+        ApplyUsersPaging();
+        StateHasChanged();
+    }
+
+    private void ClearFilters()
+    {
+        selectedEmail = string.Empty;
+        selectedRole = string.Empty;
+        FilterUsers();
+    }
+
+    private void HandleStartEdit(User user) => editingUserId = user.Id;
+    private void HandleCancelEdit() => editingUserId = null;
+
+    private async Task HandleSaveEdit(User user)
+    {
+        await UserService.UpdateUserRoleAsync(user.Id, (Role)user.Role);
+        editingUserId = null;
+        await LoadUsers();
+    }
+
+    private async Task HandleDeleteUser(int id)
+    {
+        await UserService.DeleteUserAsync(id);
+        await LoadUsers();
+    }
+
+    // Users pagination
+    private int userCurrentPage = 1;
+    private int userPageSize = 6;
+
+    private void ApplyUsersPaging()
+    {
+        pagedUsers = filteredUsers
+            .Skip((userCurrentPage - 1) * userPageSize)
+            .Take(userPageSize)
+            .ToList();
+    }
+
+    private int UsersTotalPages => Math.Max(1, (int)Math.Ceiling((filteredUsers?.Count ?? 0) / (double)userPageSize));
+
+    private void UsersPrev()
+    {
+        if (userCurrentPage > 1)
+        {
+            userCurrentPage--;
+            ApplyUsersPaging();
+        }
+    }
+
+    private void UsersNext()
+    {
+        if (userCurrentPage < UsersTotalPages)
+        {
+            userCurrentPage++;
+            ApplyUsersPaging();
+        }
+    }
+}
+
+

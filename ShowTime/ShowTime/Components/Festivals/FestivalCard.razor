@@ -117,6 +117,14 @@
                                 <button class="btn-tickets" @onclick="OnViewTickets">
                                     <i class="fa-solid fa-ticket"></i> View Tickets
                                 </button>
+                                
+                                <button class="btn-map" @onclick="OnViewMap">
+                                    <i class="fa-solid fa-map-location-dot"></i> View on Map
+                                </button>
+                                
+                                <button class="btn-reviews" @onclick="OnViewReviews">
+                                    <i class="fa-solid fa-comments"></i> Reviews
+                                </button>
                             </div>
                             
                             <!-- Admin Actions -->
@@ -149,6 +157,8 @@
     [Parameter] public EventCallback OnDelete { get; set; }
     [Parameter] public EventCallback OnViewLineup { get; set; }
     [Parameter] public EventCallback OnViewTickets { get; set; }
+    [Parameter] public EventCallback OnViewMap { get; set; }
+    [Parameter] public EventCallback OnViewReviews { get; set; }
     
     private FestivalUpdateDto UpdateFestival { get; set; } = new();
     

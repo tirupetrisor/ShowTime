@@ -45,7 +45,8 @@ public class TicketService : ITicketService
                 FestivalId = ticket.FestivalId,
                 Type = ticket.Type,
                 Price = ticket.Price / 100m, // Convert from cents to decimal
-                FestivalName = ticket.Festival.Name
+                FestivalName = ticket.Festival.Name,
+                Capacity = ticket.Capacity
             };
         }
         catch (Exception ex)
@@ -68,7 +69,8 @@ public class TicketService : ITicketService
                 FestivalId = ticket.FestivalId,
                 Type = ticket.Type,
                 Price = ticket.Price / 100m, // Convert from cents to decimal
-                FestivalName = ticket.Festival.Name
+                FestivalName = ticket.Festival.Name,
+                Capacity = ticket.Capacity
             }).ToList();
         }
         catch (Exception ex)
@@ -92,7 +94,8 @@ public class TicketService : ITicketService
                 FestivalId = ticket.FestivalId,
                 Type = ticket.Type,
                 Price = ticket.Price / 100m, // Convert from cents to decimal
-                FestivalName = ticket.Festival.Name
+                FestivalName = ticket.Festival.Name,
+                Capacity = ticket.Capacity
             }).ToList();
         }
         catch (Exception ex)
@@ -116,7 +119,8 @@ public class TicketService : ITicketService
             {
                 FestivalId = ticketCreateDto.FestivalId,
                 Type = ticketCreateDto.Type,
-                Price = (int)(ticketCreateDto.Price * 100) // Convert to cents for storage
+                Price = (int)(ticketCreateDto.Price * 100), // Convert to cents for storage
+                Capacity = ticketCreateDto.Capacity
             };
 
             await _ticketRepository.AddAsync(ticket);
@@ -141,6 +145,7 @@ public class TicketService : ITicketService
 
             ticket.Type = ticketUpdateDto.Type;
             ticket.Price = (int)(ticketUpdateDto.Price * 100); // Convert to cents for storage
+            ticket.Capacity = ticketUpdateDto.Capacity;
 
             await _ticketRepository.UpdateAsync(ticket);
             return true;

@@ -32,14 +32,29 @@
                 <span class="nav-text">Festivals</span>
             </NavLink>
 
+
             <NavLink class="nav-link" href="/bookings">
                 <span class="nav-icon">🎫</span>
                 <span class="nav-text">Bookings</span>
             </NavLink>
 
+            <AuthorizeView>
+                <Authorized Context="authCtx">
+                    <AuthorizeView Roles="Administrator">
+                        <NotAuthorized Context="nonAdminCtx">
+                            <CartLink />
+                        </NotAuthorized>
+                    </AuthorizeView>
+                </Authorized>
+            </AuthorizeView>
+
             <AuthorizeView Roles="Administrator">
                 <Authorized>
-                    <NavLink class="nav-link" href="/Users">
+                    <NavLink class="nav-link" href="/reviews">
+                        <span class="nav-icon">📝</span>
+                        <span class="nav-text">Reviews</span>
+                    </NavLink>
+                    <NavLink class="nav-link" href="/admin">
                         <span class="nav-icon">👥</span>
                         <span class="nav-text">Users</span>
                     </NavLink>

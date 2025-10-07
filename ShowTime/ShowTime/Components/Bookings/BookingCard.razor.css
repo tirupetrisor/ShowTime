@@ -1,15 +1,18 @@
-/* Modern Booking Card */
+/* Booking Card Styles */
 .booking-card {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: none;
+    background: white;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    margin-bottom: 2rem;
     position: relative;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+    border: 1px solid #e5e7eb;
+}
+
+.booking-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }
 
 .booking-card::before {
@@ -19,23 +22,19 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: linear-gradient(90deg, #14b8a6, #f59e0b);
 }
 
-.booking-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-}
-
-/* Header Section */
 .booking-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+    color: #1f2937;
     padding: 1.5rem;
+    text-align: center;
+    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: relative;
+    border-bottom: 2px solid #14b8a6;
 }
 
 .booking-header::before {
@@ -45,55 +44,59 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
-    background-size: 30px 30px;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.08)"/><circle cx="40" cy="80" r="1" fill="rgba(255,255,255,0.06)"/></svg>');
     opacity: 0.3;
 }
 
 .festival-info {
+    text-align: left;
     position: relative;
     z-index: 1;
+    background: transparent;
 }
 
 .booking-festival {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     font-weight: 700;
-    margin: 0 0 0.5rem 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+    color: #1f2937;
+    text-shadow: none;
 }
 
 .booking-date {
     font-size: 0.9rem;
-    opacity: 0.9;
+    color: #6b7280;
+    position: relative;
+    z-index: 1;
     font-weight: 500;
 }
 
 .booking-badge {
-    background: rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(135deg, #14b8a6, #059669);
+    border-radius: 50%;
     width: 50px;
     height: 50px;
-    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
-    backdrop-filter: blur(10px);
-    position: relative;
-    z-index: 1;
+    font-size: 1.5rem;
+    color: white;
+    box-shadow: 0 4px 8px rgba(20, 184, 166, 0.3);
 }
 
-/* Content Section */
 .booking-content {
     padding: 1.5rem;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
 }
 
 .booking-details {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .detail-item {
@@ -101,122 +104,231 @@
     align-items: center;
     gap: 1rem;
     padding: 0.75rem;
-    background: rgba(102, 126, 234, 0.05);
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
     border-radius: 12px;
+    border: 1px solid #e9ecef;
     transition: all 0.3s ease;
 }
 
 .detail-item:hover {
-    background: rgba(102, 126, 234, 0.1);
+    background: linear-gradient(135deg, #e9ecef, #dee2e6);
+    transform: translateX(5px);
 }
 
 .detail-icon {
-    width: 35px;
-    height: 35px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
+    background: linear-gradient(135deg, #14b8a6, #059669);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     flex-shrink: 0;
+    box-shadow: 0 4px 8px rgba(20, 184, 166, 0.3);
 }
 
 .detail-info {
     display: flex;
     flex-direction: column;
-    flex: 1;
+    flex-grow: 1;
 }
 
 .detail-label {
     font-size: 0.8rem;
-    color: #6c757d;
-    font-weight: 500;
-    margin-bottom: 0.2rem;
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
 }
 
 .detail-value {
-    font-size: 0.95rem;
-    color: #2c3e50;
+    color: #374151;
     font-weight: 600;
-}
-
-.price-item {
-    background: rgba(102, 126, 234, 0.08);
-    border: 1px solid rgba(102, 126, 234, 0.2);
-    margin-top: 0.5rem;
-}
-
-.price-item .detail-icon {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-}
-
-.price-item .detail-label {
-    color: #6c757d;
+    font-size: 1rem;
 }
 
 .price-value {
-    color: #2c3e50 !important;
-    font-size: 1.1rem !important;
-    font-weight: 700 !important;
-}
-
-/* Actions Section */
-.booking-actions {
-    padding: 1rem 1.5rem;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-top: 1px solid #e3e6f0;
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.edit-btn {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    border: none;
-    border-radius: 25px;
-    padding: 0.7rem 1.5rem;
+    color: #374151;
+    font-size: 1rem;
     font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
+}
+
+/* Action Buttons */
+.booking-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-top: 1px solid #e9ecef;
+}
+
+.edit-btn, .delete-btn {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+    min-width: 100px;
+    justify-content: center;
+}
+
+.edit-btn {
+    background: linear-gradient(135deg, #14b8a6, #059669);
+    color: white;
 }
 
 .edit-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-}
-
-.edit-btn i {
-    font-size: 0.9rem;
+    box-shadow: 0 8px 20px rgba(20, 184, 166, 0.3);
+    color: white;
 }
 
 .delete-btn {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    background: linear-gradient(135deg, #ef4444, #dc2626);
     color: white;
-    border: none;
-    border-radius: 25px;
-    padding: 0.7rem 1.5rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
 }
 
 .delete-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+    color: white;
 }
 
-.delete-btn i {
+/* Edit Mode */
+.edit-mode {
+    background: linear-gradient(145deg, #134e4a, #0f766e);
+    border-radius: 15px;
+    padding: 1.5rem;
+    color: white;
+    margin-top: 1rem;
+}
+
+.edit-title {
+    color: white;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #ecf0f1;
+    font-size: 0.9rem;
+}
+
+.edit-mode .form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 0.9rem;
+}
+
+.edit-mode .form-control:focus {
+    outline: none;
+    border-color: #14b8a6;
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+}
+
+.edit-mode .form-control[readonly] {
+    background: rgba(255, 255, 255, 0.05);
+    cursor: not-allowed;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
+.btn-cancel {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+}
+
+/* Festival Information */
+.festival-info {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+.festival-dates {
+    color: #d97706;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.festival-location {
+    color: #059669;
+    font-weight: 500;
+}
+
+.booking-notes {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    border-left: 4px solid #f59e0b;
+}
+
+.notes-title {
+    font-weight: 600;
+    color: #92400e;
+    margin-bottom: 0.5rem;
+}
+
+.notes-content {
+    color: #78350f;
     font-size: 0.9rem;
 }
 
@@ -229,16 +341,30 @@
     .booking-header {
         padding: 1rem;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .festival-info {
         text-align: center;
     }
     
     .booking-festival {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
     }
     
     .booking-content {
         padding: 1rem;
+    }
+    
+    .booking-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .edit-btn, .delete-btn {
+        width: 100%;
+        min-width: auto;
     }
     
     .detail-item {
@@ -246,22 +372,8 @@
     }
     
     .detail-icon {
-        width: 30px;
-        height: 30px;
-        font-size: 0.8rem;
-    }
-    
-    .booking-actions {
-        padding: 0.8rem 1rem;
-    }
-    
-    .edit-btn {
-        padding: 0.6rem 1.2rem;
-        font-size: 0.85rem;
-    }
-    
-    .delete-btn {
-        padding: 0.6rem 1.2rem;
-        font-size: 0.85rem;
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
     }
 } 

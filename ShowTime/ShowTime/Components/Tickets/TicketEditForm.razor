@@ -17,6 +17,11 @@
             <InputNumber @bind-Value="UpdateTicket.Price" step="0.01" class="form-control"/>
             <ValidationMessage For="@(() => UpdateTicket.Price)" class="text-warning fw-bold" />
         </div>
+        <div class="mb-3">
+            <label class="form-label">📦 Capacity</label>
+            <InputNumber @bind-Value="UpdateTicket.Capacity" class="form-control"/>
+            <ValidationMessage For="@(() => UpdateTicket.Capacity)" class="text-warning fw-bold" />
+        </div>
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-save">
                 <i class="fas fa-check"></i> Save
@@ -41,7 +46,8 @@
         UpdateTicket = new TicketUpdateDto
         {
             Type = Ticket.Type,
-            Price = Ticket.Price
+            Price = Ticket.Price,
+            Capacity = Ticket.Capacity
         };
     }
     

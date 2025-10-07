@@ -11,4 +11,8 @@ public class TicketUpdateDto
     [Required(ErrorMessage = "Price is required")]
     [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than 0")]
     public decimal Price { get; set; }
+
+    [Required(ErrorMessage = "Capacity is required")]
+    [Range(1, 1000000, ErrorMessage = "Capacity must be between 1 and 1,000,000")]
+    public int Capacity { get; set; }
 } 

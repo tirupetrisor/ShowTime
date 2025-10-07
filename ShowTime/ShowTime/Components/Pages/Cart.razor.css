@@ -1,0 +1,124 @@
+.cart-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.cart-item {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cart-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-title {
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.cart-sub {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.cart-availability {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #059669;
+    font-weight: 600;
+}
+
+.cart-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cart-actions .qty {
+    width: 80px;
+}
+
+.cart-actions .price {
+    font-weight: 700;
+}
+
+.cart-summary {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 16px;
+    margin-top: 20px;
+}
+
+.cart-summary .summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.cart-summary .summary-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+/* Reuse app button styles for consistency */
+.btn-save {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
+.btn-cancel {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+}
+
+.btn-delete {
+    background: linear-gradient(45deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-delete:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+}
+

@@ -10,9 +10,12 @@ public interface IBookingService
     Task<IList<BookingGetDto>> GetBookingsByFestivalIdAsync(int festivalId);
     Task<bool> CreateBookingAsync(BookingCreateDto bookingCreateDto);
     Task<bool> UpdateBookingAsync(int id, int newTicketId); // Schimbă tipul biletului
+    Task<bool> UpdateBookingDetailsAsync(int id, int newTicketId, int newQuantity);
     Task<bool> CancelBookingAsync(int id);
     Task<bool> DeleteBookingAsync(int id); // Admin functionality to delete any booking
+    Task<bool> DeleteBookingGroupAsync(int id); // Delete all rows for same user+festival+ticket
     Task<bool> IsUserBookedForFestivalAsync(int festivalId, int userId);
     Task<int> GetAvailableTicketsAsync(int festivalId);
+    Task<int> GetAvailableTicketsForTypeAsync(int ticketId);
     Task<Dictionary<string, int>> GetBookingStatsByFestivalAsync(int festivalId); // Admin only
 } 

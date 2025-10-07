@@ -74,18 +74,21 @@
         </div>
     </SearchFilter>
 
-    <!-- Add New Booking Form -->
-    <BookingCreateForm NewBooking="@newBooking"
-                       AllFestivals="@allFestivals"
-                       AvailableTickets="@availableTickets"
-                       AllUsers="@allUsers"
-                       IsAdmin="@isAdmin"
-                       OnAddBooking="AddBooking"
-                       OnFestivalChanged="OnFestivalChanged" />
+    @if (isAdmin)
+    {
+        <!-- Add New Booking Form (Admins only) -->
+        <BookingCreateForm NewBooking="@newBooking"
+                           AllFestivals="@allFestivals"
+                           AvailableTickets="@availableTickets"
+                           AllUsers="@allUsers"
+                           IsAdmin="@isAdmin"
+                           OnAddBooking="AddBooking"
+                           OnFestivalChanged="OnFestivalChanged" />
+    }
 
     <!-- Bookings List -->
     <BookingList DisplayBookings="@displayBookings"
-                 FilteredBookings="@filteredBookings"
+                 FilteredBookings="@pagedBookings"
                  IsAdmin="@isAdmin"
                  EditingBookingId="@editingBookingId"
                  FestivalTickets="@festivalTickets"
@@ -93,12 +96,26 @@
                  OnSaveEdit="HandleSaveEdit"
                  OnCancelEdit="HandleCancelEdit"
                  OnDeleteBooking="DeleteBooking" />
+
+    <div class="bookings-pagination-bar">
+        <div class="page-controls">
+            <button type="button" class="page-btn" @onclick="GoPrev" disabled="@(currentPage <= 1)">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <span class="page-info">Page @currentPage of @TotalPages</span>
+            <button type="button" class="page-btn" @onclick="GoNext" disabled="@(currentPage >= TotalPages)">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
 </div>
 
 @code {
     private bool isAdmin = false;
     private IList<BookingGetDto> displayBookings = new List<BookingGetDto>();
     private IList<BookingGetDto> filteredBookings = new List<BookingGetDto>();
+    private IList<BookingGetDto> uniqueFilteredBookings = new List<BookingGetDto>();
+    private IList<BookingGetDto> pagedBookings = new List<BookingGetDto>();
     private IList<FestivalGetDto> allFestivals = new List<FestivalGetDto>();
     private IList<FestivalGetDto> availableFestivals = new List<FestivalGetDto>();
     private IList<TicketGetDto> availableTickets = new List<TicketGetDto>();
@@ -190,7 +207,13 @@
             "price_desc" => filtered.OrderByDescending(b => b.TicketPrice).ToList(),
             _ => filtered.ToList()
         };
-        
+        // Build unique groups (UserId + FestivalId + TicketId)
+        uniqueFilteredBookings = filteredBookings
+            .GroupBy(b => new { b.UserId, b.FestivalId, b.TicketId })
+            .Select(g => g.First())
+            .ToList();
+
+        ApplyPaging();
         StateHasChanged();
     }
 
@@ -227,34 +250,49 @@
         };
     }
 
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+
     private async Task AddBooking(BookingCreateDto bookingDto)
     {
-        if (!isAdmin)
+        try
         {
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (int.TryParse(userId, out int userIdInt))
+            ClearMessages();
+            if (!isAdmin)
             {
-                bookingDto.UserId = userIdInt;
+                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(userId, out int userIdInt))
+                {
+                    bookingDto.UserId = userIdInt;
+                }
+            }
+
+            await BookingService.CreateBookingAsync(bookingDto);
+            successMessage = "Booking created successfully.";
+            await LoadData();
+
+            // Reset the form but preserve user ID for non-admin users
+            var currentUserId = newBooking.UserId;
+            newBooking = new BookingCreateDto();
+            if (!isAdmin)
+            {
+                newBooking.UserId = currentUserId;
             }
         }
-        
-        await BookingService.CreateBookingAsync(bookingDto);
-        await LoadData();
-        
-        // Reset the form but preserve user ID for non-admin users
-        var currentUserId = newBooking.UserId;
-        newBooking = new BookingCreateDto();
-        if (!isAdmin)
+        catch (Exception ex)
         {
-            newBooking.UserId = currentUserId;
+            errorMessage = ex.Message;
         }
-        
-        StateHasChanged();
+        finally
+        {
+            StateHasChanged();
+        }
     }
 
     private async Task OnFestivalChanged(int festivalId)
     {
+        ClearMessages();
         newBooking.FestivalId = festivalId;
         newBooking.TicketId = 0;
         
@@ -268,6 +306,12 @@
         }
         
         StateHasChanged();
+    }
+
+    private void ClearMessages()
+    {
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
     }
 
     private async Task LoadFestivalTickets()
@@ -291,11 +335,11 @@
         StateHasChanged();
     }
 
-    private async Task HandleSaveEdit((int bookingId, int newTicketId) editData)
+    private async Task HandleSaveEdit((int bookingId, int newTicketId, int newQuantity) editData)
     {
         try
         {
-            await BookingService.UpdateBookingAsync(editData.bookingId, editData.newTicketId);
+            await BookingService.UpdateBookingDetailsAsync(editData.bookingId, editData.newTicketId, editData.newQuantity);
             editingBookingId = null;
             await LoadData();
         }
@@ -314,7 +358,40 @@
 
     private async Task DeleteBooking(int bookingId)
     {
-        await BookingService.DeleteBookingAsync(bookingId);
+        // Delete entire group (same user + festival + ticket)
+        await BookingService.DeleteBookingGroupAsync(bookingId);
         await LoadData();
+    }
+
+    // Pagination
+    private int currentPage = 1;
+    private int pageSize = 6;
+
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling((uniqueFilteredBookings?.Count ?? 0) / (double)pageSize));
+
+    private void ApplyPaging()
+    {
+        pagedBookings = (uniqueFilteredBookings ?? new List<BookingGetDto>())
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+    }
+
+    private void GoPrev()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+            ApplyPaging();
+        }
+    }
+
+    private void GoNext()
+    {
+        if (currentPage < TotalPages)
+        {
+            currentPage++;
+            ApplyPaging();
+        }
     }
 } 

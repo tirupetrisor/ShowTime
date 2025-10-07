@@ -1,0 +1,165 @@
+@page "/cart"
+@using ShowTime.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject CartService CartSvc
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider Auth
+@rendermode InteractiveServer
+
+<PageTitle>Cart - ShowTime</PageTitle>
+
+<div class="container">
+    <PageHeader Title="🛒 Cart" Subtitle="Review your tickets and confirm your order" />
+
+    @if (CartSvc.GetItems().Count == 0)
+    {
+        <NoResults Icon="🛍️" Title="Your cart is empty" CssClass="no-tickets">
+        </NoResults>
+    }
+    else
+    {
+        <div class="cart-list">
+            @foreach (var item in CartSvc.GetItems())
+            {
+                var available = availableByTicketId.TryGetValue(item.TicketId, out var a) ? a : (int?)null;
+                <div class="cart-item">
+                    <div class="cart-info">
+                        <div class="cart-title">🎪 @item.FestivalName</div>
+                        <div class="cart-sub">🎟️ @item.TicketType</div>
+                        @if (available.HasValue)
+                        {
+                            <div class="cart-availability">Available: @available</div>
+                        }
+                    </div>
+                    <div class="cart-actions">
+                        <input type="number" min="1" value="@item.Quantity" @oninput="(e => OnQtyChanged(item.TicketId, e))" class="form-control qty" />
+                        <span class="price">@((item.UnitPrice * item.Quantity).ToString("C"))</span>
+                        <button type="button" class="btn-delete" @onclick="(() => Remove(item.TicketId))">Remove</button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="cart-summary">
+            <div class="summary-row">
+                <span>Total items</span>
+                <strong>@CartSvc.GetTotalCount()</strong>
+            </div>
+            <div class="summary-row">
+                <span>Total price</span>
+                <strong>@CartSvc.GetTotalPrice().ToString("C")</strong>
+            </div>
+            <div class="summary-actions">
+                <button type="button" class="btn-cancel" @onclick="Clear">Clear Cart</button>
+                <button type="button" class="btn-save" @onclick="Checkout">Confirm Order</button>
+            </div>
+            @if (!string.IsNullOrEmpty(error))
+            {
+                <div class="alert alert-danger">@error</div>
+            }
+            @if (!string.IsNullOrEmpty(success))
+            {
+                <div class="alert alert-success">@success</div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private string error = string.Empty;
+    private string success = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        CartSvc.OnChange += HandleCartChange;
+        await RefreshAvailability();
+    }
+
+    private Dictionary<int, int> availableByTicketId = new();
+
+    private async Task RefreshAvailability()
+    {
+        var items = CartSvc.GetItems();
+        var map = new Dictionary<int, int>();
+        foreach (var it in items)
+        {
+            try
+            {
+                map[it.TicketId] = await CartSvc.GetAvailableForTicketAsync(it.TicketId);
+            }
+            catch
+            {
+                map[it.TicketId] = 0;
+            }
+        }
+        availableByTicketId = map;
+        StateHasChanged();
+    }
+
+    private async void HandleCartChange()
+    {
+        await RefreshAvailability();
+    }
+
+    private async Task OnQtyChanged(int ticketId, ChangeEventArgs e)
+    {
+        error = string.Empty;
+        success = string.Empty;
+        if (int.TryParse(Convert.ToString(e.Value), out var qty))
+        {
+            if (qty < 1) qty = 1;
+            CartSvc.UpdateQuantity(ticketId, qty);
+            await RefreshAvailability();
+        }
+    }
+
+    private async Task Remove(int ticketId)
+    {
+        error = string.Empty;
+        success = string.Empty;
+        CartSvc.Remove(ticketId);
+        await RefreshAvailability();
+    }
+
+    private async Task Clear()
+    {
+        error = string.Empty;
+        success = string.Empty;
+        CartSvc.Clear();
+        await RefreshAvailability();
+    }
+
+    private async Task Checkout()
+    {
+        error = string.Empty;
+        success = string.Empty;
+
+        var authState = await Auth.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (!user.Identity?.IsAuthenticated ?? true)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            error = "Cannot read user ID.";
+            return;
+        }
+
+        try
+        {
+            await CartSvc.CheckoutAsync(userId);
+            success = "Order confirmed! Your tickets are reserved.";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+}
+
+

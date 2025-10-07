@@ -12,7 +12,7 @@
                 <EditForm Model="NewTicket" OnValidSubmit="HandleValidSubmit" FormName="AddTicketForm">
                     <DataAnnotationsValidator />
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-bold">🎪 Festival</label>
                             <select @bind="NewTicket.FestivalId" class="form-control form-control-modern">
                                 <option value="0">Select Festival</option>
@@ -23,15 +23,20 @@
                             </select>
                             <ValidationMessage For="@(() => NewTicket.FestivalId)" class="text-warning fw-bold" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-bold">🎟️ Ticket Type</label>
                             <InputText @bind-Value="NewTicket.Type" class="form-control form-control-modern" placeholder="e.g., VIP, General, Early Bird"/>
                             <ValidationMessage For="@(() => NewTicket.Type)" class="text-warning fw-bold" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-bold">💰 Price ($)</label>
                             <InputNumber @bind-Value="NewTicket.Price" step="0.01" class="form-control form-control-modern" placeholder="0.00"/>
                             <ValidationMessage For="@(() => NewTicket.Price)" class="text-warning fw-bold" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">📦 Capacity</label>
+                            <InputNumber @bind-Value="NewTicket.Capacity" class="form-control form-control-modern" placeholder="0"/>
+                            <ValidationMessage For="@(() => NewTicket.Capacity)" class="text-warning fw-bold" />
                         </div>
                     </div>
                     <div class="text-center mt-4">

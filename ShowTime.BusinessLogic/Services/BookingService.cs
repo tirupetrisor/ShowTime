@@ -191,24 +191,45 @@ public class BookingService : IBookingService
                 throw new InvalidOperationException("Ticket does not belong to the specified festival.");
             }
 
-            // Verifică capacitatea festivalului
-            var currentBookings = await _context.Bookings
+            // Normalize quantity
+            var quantity = Math.Max(1, bookingCreateDto.Quantity);
+
+            // Use a transaction to avoid over-selling under concurrency
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            // Re-read counts inside the transaction
+            var currentFestivalSold = await _context.Bookings
                 .Where(b => b.FestivalId == bookingCreateDto.FestivalId)
                 .CountAsync();
 
-            if (currentBookings >= festival.Capacity)
+            if (currentFestivalSold + quantity > festival.Capacity)
             {
-                throw new InvalidOperationException("Festival is at full capacity.");
+                throw new InvalidOperationException("Not enough capacity left for the festival.");
             }
 
-            var booking = new Booking
-            {
-                FestivalId = bookingCreateDto.FestivalId,
-                UserId = bookingCreateDto.UserId,
-                TicketId = bookingCreateDto.TicketId
-            };
+            var currentTypeSold = await _context.Bookings
+                .Where(b => b.TicketId == bookingCreateDto.TicketId)
+                .CountAsync();
 
-            await _bookingRepository.AddAsync(booking);
+            if (currentTypeSold + quantity > ticket.Capacity)
+            {
+                throw new InvalidOperationException("Not enough tickets left of this type.");
+            }
+
+            // Create N bookings (1 row per ticket)
+            for (int i = 0; i < quantity; i++)
+            {
+                var booking = new Booking
+                {
+                    FestivalId = bookingCreateDto.FestivalId,
+                    UserId = bookingCreateDto.UserId,
+                    TicketId = bookingCreateDto.TicketId
+                };
+
+                await _bookingRepository.AddAsync(booking);
+            }
+
+            await transaction.CommitAsync();
             return true;
         }
         catch (Exception ex)
@@ -250,6 +271,141 @@ public class BookingService : IBookingService
         }
     }
 
+    public async Task<bool> UpdateBookingDetailsAsync(int id, int newTicketId, int newQuantity)
+    {
+        try
+        {
+            if (newQuantity < 1)
+            {
+                throw new ArgumentException("Quantity must be at least 1.");
+            }
+
+            // Load the anchor booking and related data
+            var anchorBooking = await _context.Bookings
+                .Include(b => b.Ticket)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (anchorBooking == null)
+            {
+                throw new KeyNotFoundException($"Booking with ID {id} not found.");
+            }
+
+            var userId = anchorBooking.UserId;
+            var festivalId = anchorBooking.FestivalId;
+            var currentTicketId = anchorBooking.TicketId;
+
+            // Count current quantity for this user's group (same festival and ticket)
+            var currentGroupCount = await _context.Bookings
+                .Where(b => b.UserId == userId && b.FestivalId == festivalId && b.TicketId == currentTicketId)
+                .CountAsync();
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            if (newTicketId == currentTicketId)
+            {
+                var delta = newQuantity - currentGroupCount;
+                if (delta == 0)
+                {
+                    await transaction.CommitAsync();
+                    return true;
+                }
+
+                // Festival capacity check (only when increasing)
+                if (delta > 0)
+                {
+                    var festival = await _festivalRepository.GetByIdAsync(festivalId) ?? throw new KeyNotFoundException($"Festival with ID {festivalId} not found.");
+                    var currentFestivalSold = await _context.Bookings.Where(b => b.FestivalId == festivalId).CountAsync();
+                    if (currentFestivalSold + delta > festival.Capacity)
+                    {
+                        throw new InvalidOperationException("Not enough capacity left for the festival.");
+                    }
+
+                    var ticket = await _ticketRepository.GetByIdAsync(currentTicketId) ?? throw new KeyNotFoundException($"Ticket with ID {currentTicketId} not found.");
+                    var currentTypeSold = await _context.Bookings.Where(b => b.TicketId == currentTicketId).CountAsync();
+                    if (currentTypeSold + delta > ticket.Capacity)
+                    {
+                        throw new InvalidOperationException("Not enough tickets left of this type.");
+                    }
+
+                    for (int i = 0; i < delta; i++)
+                    {
+                        await _bookingRepository.AddAsync(new Booking
+                        {
+                            FestivalId = festivalId,
+                            UserId = userId,
+                            TicketId = currentTicketId
+                        });
+                    }
+                }
+                else // delta < 0 => remove -delta rows from this group (excluding the anchor only if needed)
+                {
+                    var toRemove = await _context.Bookings
+                        .Where(b => b.UserId == userId && b.FestivalId == festivalId && b.TicketId == currentTicketId)
+                        .OrderByDescending(b => b.Id)
+                        .Take(-delta)
+                        .ToListAsync();
+
+                    foreach (var b in toRemove)
+                    {
+                        await _bookingRepository.DeleteAsync(b);
+                    }
+                }
+            }
+            else
+            {
+                // Changing ticket type and quantity: remove the whole current group and create desired count of the new type
+                var festival = await _festivalRepository.GetByIdAsync(festivalId) ?? throw new KeyNotFoundException($"Festival with ID {festivalId} not found.");
+                var newTicket = await _ticketRepository.GetByIdAsync(newTicketId) ?? throw new KeyNotFoundException($"Ticket with ID {newTicketId} not found.");
+
+                if (newTicket.FestivalId != festivalId)
+                {
+                    throw new InvalidOperationException("New ticket does not belong to the same festival.");
+                }
+
+                // Capacity checks
+                var currentFestivalSold = await _context.Bookings.Where(b => b.FestivalId == festivalId).CountAsync();
+                var festivalDelta = newQuantity - currentGroupCount; // extra seats needed overall
+                if (festivalDelta > 0 && currentFestivalSold + festivalDelta > festival.Capacity)
+                {
+                    throw new InvalidOperationException("Not enough capacity left for the festival.");
+                }
+
+                var newTypeSold = await _context.Bookings.Where(b => b.TicketId == newTicketId).CountAsync();
+                if (newTypeSold + newQuantity > newTicket.Capacity)
+                {
+                    throw new InvalidOperationException("Not enough tickets left of the selected type.");
+                }
+
+                // Delete current group
+                var currentGroup = await _context.Bookings
+                    .Where(b => b.UserId == userId && b.FestivalId == festivalId && b.TicketId == currentTicketId)
+                    .ToListAsync();
+                foreach (var b in currentGroup)
+                {
+                    await _bookingRepository.DeleteAsync(b);
+                }
+
+                // Create new group with desired quantity
+                for (int i = 0; i < newQuantity; i++)
+                {
+                    await _bookingRepository.AddAsync(new Booking
+                    {
+                        FestivalId = festivalId,
+                        UserId = userId,
+                        TicketId = newTicketId
+                    });
+                }
+            }
+
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("An error occurred while updating the booking details.", ex);
+        }
+    }
+
     public async Task<bool> CancelBookingAsync(int id)
     {
         try
@@ -288,6 +444,33 @@ public class BookingService : IBookingService
         }
     }
 
+    public async Task<bool> DeleteBookingGroupAsync(int id)
+    {
+        try
+        {
+            var anchor = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == id);
+            if (anchor == null)
+            {
+                throw new KeyNotFoundException($"Booking with ID {id} not found.");
+            }
+
+            var group = await _context.Bookings
+                .Where(b => b.UserId == anchor.UserId && b.FestivalId == anchor.FestivalId && b.TicketId == anchor.TicketId)
+                .ToListAsync();
+
+            foreach (var b in group)
+            {
+                await _bookingRepository.DeleteAsync(b);
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"An error occurred while deleting the booking group for ID {id}.", ex);
+        }
+    }
+
     public async Task<bool> IsUserBookedForFestivalAsync(int festivalId, int userId)
     {
         try
@@ -322,6 +505,28 @@ public class BookingService : IBookingService
         catch (Exception ex)
         {
             throw new Exception($"An error occurred while getting available tickets for festival {festivalId}.", ex);
+        }
+    }
+
+    public async Task<int> GetAvailableTicketsForTypeAsync(int ticketId)
+    {
+        try
+        {
+            var ticket = await _ticketRepository.GetByIdAsync(ticketId);
+            if (ticket == null)
+            {
+                throw new KeyNotFoundException($"Ticket with ID {ticketId} not found.");
+            }
+
+            var soldForTicket = await _context.Bookings
+                .Where(b => b.TicketId == ticketId)
+                .CountAsync();
+
+            return Math.Max(0, ticket.Capacity - soldForTicket);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"An error occurred while getting available tickets for ticket {ticketId}.", ex);
         }
     }
 

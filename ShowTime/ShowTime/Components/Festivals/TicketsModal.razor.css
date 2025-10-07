@@ -44,7 +44,7 @@
 
 /* Modern Header */
 .tickets-modal-header {
-    background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     color: white;
     padding: 2rem;
     position: relative;
@@ -126,7 +126,7 @@
 }
 
 .section-header i {
-    color: #e67e22;
+    color: #f59e0b;
 }
 
 /* Add Ticket Section */
@@ -174,8 +174,8 @@
 
 .custom-input:focus {
     outline: none;
-    border-color: #e67e22;
-    box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
 }
 
 .form-actions {
@@ -185,7 +185,7 @@
 }
 
 .add-btn {
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    background: linear-gradient(135deg, #10b981, #34d399);
     color: white;
     border: none;
     padding: 0.75rem 1.5rem;

@@ -143,6 +143,51 @@ namespace ShowTime.DataAccess.Migrations
                     b.ToTable("Lineups", (string)null);
                 });
 
+            modelBuilder.Entity("ShowTime.DataAccess.Models.Review", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<int>("FestivalId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SentimentLabel")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<double>("SentimentScore")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("float(5)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("FestivalId", "UserId");
+
+                    b.ToTable("Reviews", (string)null);
+                });
+
             modelBuilder.Entity("ShowTime.DataAccess.Models.Ticket", b =>
                 {
                     b.Property<int>("Id")
@@ -150,6 +195,9 @@ namespace ShowTime.DataAccess.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
 
                     b.Property<int>("FestivalId")
                         .HasColumnType("int");
@@ -246,6 +294,25 @@ namespace ShowTime.DataAccess.Migrations
                     b.Navigation("Artist");
 
                     b.Navigation("Festival");
+                });
+
+            modelBuilder.Entity("ShowTime.DataAccess.Models.Review", b =>
+                {
+                    b.HasOne("ShowTime.DataAccess.Models.Festival", "Festival")
+                        .WithMany()
+                        .HasForeignKey("FestivalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ShowTime.DataAccess.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Festival");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ShowTime.DataAccess.Models.Ticket", b =>

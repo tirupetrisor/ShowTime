@@ -24,6 +24,9 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.Property(t => t.Price)
             .IsRequired();
 
+        builder.Property(t => t.Capacity)
+            .IsRequired();
+
         builder.HasOne(t => t.Festival)
             .WithMany(f => f.Tickets)
             .HasForeignKey(t => t.FestivalId);

@@ -44,7 +44,7 @@
 
 /* Modern Header */
 .lineup-modal-header {
-    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    background: linear-gradient(135deg, #14b8a6 0%, #059669 100%);
     color: white;
     padding: 2rem;
     position: relative;
@@ -126,7 +126,7 @@
 }
 
 .section-header i {
-    color: #9b59b6;
+    color: #14b8a6;
 }
 
 /* Add Artist Section */
@@ -174,12 +174,12 @@
 
 .custom-select:focus, .custom-input:focus {
     outline: none;
-    border-color: #9b59b6;
-    box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
+    border-color: #14b8a6;
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
 }
 
 .add-btn {
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    background: linear-gradient(135deg, #10b981, #34d399);
     color: white;
     border: none;
     padding: 0.75rem 1.5rem;
@@ -195,7 +195,7 @@
 
 .add-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
 }
 
 /* Lineup Section */

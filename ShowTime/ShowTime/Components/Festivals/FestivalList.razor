@@ -2,21 +2,11 @@
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Authorization
 
-<h2 class="section-title">🌟 Our Festivals</h2>
 
-@if (FilteredFestivals.Count == 0 && AllFestivals.Count > 0)
+
+@if (AllFestivals.Count == 0)
 {
-    <NoResults Icon="🔍" Title="No festivals found!" Message="Try adjusting your search criteria or clear the filters" />
-}
-else if (AllFestivals.Count == 0)
-{
-    <NoResults Icon="🎭" Title="No festivals registered yet!" CssClass="no-festivals">
-        <AuthorizeView Roles="Administrator">
-            <Authorized>
-                <p>Start by adding your first festival above</p>
-            </Authorized>
-        </AuthorizeView>
-    </NoResults>
+    <div class="text-center py-4">No festivals available.</div>
 }
 else
 {
@@ -30,7 +20,9 @@ else
                          OnCancelEdit="@(() => OnCancelEdit.InvokeAsync())"
                          OnDelete="@(() => OnDeleteFestival.InvokeAsync(festival.Id))"
                          OnViewLineup="@(() => OnViewLineup.InvokeAsync(festival))"
-                         OnViewTickets="@(() => OnViewTickets.InvokeAsync(festival))" />
+                         OnViewTickets="@(() => OnViewTickets.InvokeAsync(festival))"
+                         OnViewMap="@(() => OnViewMap.InvokeAsync(festival))"
+                         OnViewReviews="@(() => OnViewReviews.InvokeAsync(festival))" />
         }
     </div>
 }
@@ -45,4 +37,6 @@ else
     [Parameter] public EventCallback<int> OnDeleteFestival { get; set; }
     [Parameter] public EventCallback<FestivalGetDto> OnViewLineup { get; set; }
     [Parameter] public EventCallback<FestivalGetDto> OnViewTickets { get; set; }
+    [Parameter] public EventCallback<FestivalGetDto> OnViewMap { get; set; }
+    [Parameter] public EventCallback<FestivalGetDto> OnViewReviews { get; set; }
 } 

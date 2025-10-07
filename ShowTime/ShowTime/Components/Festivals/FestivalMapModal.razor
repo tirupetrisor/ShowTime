@@ -1,0 +1,81 @@
+@using Microsoft.AspNetCore.Components
+@using Microsoft.JSInterop
+
+@if (IsVisible)
+{
+    <div class="map-modal-overlay" @onclick="HandleClose">
+        <div class="map-modal-container" @onclick:stopPropagation="true">
+            <div class="map-modal-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                    </div>
+                    <div class="header-text">
+                        <h3 class="modal-title">@Title</h3>
+                        <p class="modal-subtitle">@Subtitle</p>
+                    </div>
+                </div>
+                <button type="button" class="close-btn" @onclick="HandleClose">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="map-modal-body">
+                <div id="@MapContainerId" class="festival-map"></div>
+                @if (!string.IsNullOrWhiteSpace(Address))
+                {
+                    <div class="map-address">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>@Address</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    [Parameter] public bool IsVisible { get; set; } = false;
+    [Parameter] public string Title { get; set; } = "Festival Location";
+    [Parameter] public string Subtitle { get; set; } = "View the location on the map";
+    [Parameter] public string Address { get; set; } = string.Empty;
+    [Parameter] public double? Latitude { get; set; }
+    [Parameter] public double? Longitude { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private string MapContainerId { get; } = $"festival-map-{Guid.NewGuid().ToString("N")}";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (IsVisible)
+        {
+            // Ensure container exists and initialize map each time the modal is shown
+            try
+            {
+                if (Latitude.HasValue && Longitude.HasValue)
+                {
+                    await JS.InvokeVoidAsync("ShowTimeMaps.showLatLngOnMap", MapContainerId, Latitude.Value, Longitude.Value, Address, 13);
+                }
+                else if (!string.IsNullOrWhiteSpace(Address))
+                {
+                    await JS.InvokeVoidAsync("ShowTimeMaps.showAddressOnMap", MapContainerId, Address, 13);
+                }
+            }
+            catch { }
+        }
+    }
+
+    private async Task HandleClose()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("ShowTimeMaps.disposeMap", MapContainerId);
+        }
+        catch { }
+        await OnClose.InvokeAsync();
+    }
+}
+
+

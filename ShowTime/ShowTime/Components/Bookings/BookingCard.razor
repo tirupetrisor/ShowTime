@@ -17,70 +17,55 @@
         </div>
         
         <div class="booking-content">
-            @if (IsEditing)
-            {
-                <!-- Edit Mode -->
-                <BookingEditForm Booking="@Booking" 
-                                AvailableTickets="@AvailableTickets" 
-                                OnSave="OnSaveEdit" 
-                                OnCancel="OnCancelEdit" 
-                                FormName="@($"EditBookingForm_{Booking.Id}")" />
-            }
-            else
-            {
-                <!-- Display Mode -->
-                <div class="booking-details">
-                    @if (IsAdmin)
-                    {
-                        <div class="detail-item">
-                            <div class="detail-icon">
-                                <i class="fa-solid fa-user"></i>
-                            </div>
-                            <div class="detail-info">
-                                <span class="detail-label">Customer</span>
-                                <span class="detail-value">@Booking.UserEmail</span>
-                            </div>
-                        </div>
-                    }
-                    
+            <div class="booking-details">
+                @if (IsAdmin)
+                {
                     <div class="detail-item">
                         <div class="detail-icon">
-                            <i class="fa-solid fa-tag"></i>
+                            <i class="fa-solid fa-user"></i>
                         </div>
                         <div class="detail-info">
-                            <span class="detail-label">Ticket Type</span>
-                            <span class="detail-value">@Booking.TicketType</span>
+                            <span class="detail-label">Customer</span>
+                            <span class="detail-value">@Booking.UserEmail</span>
                         </div>
                     </div>
-                    
-                    <div class="detail-item price-item">
-                        <div class="detail-icon">
-                            <i class="fa-solid fa-dollar-sign"></i>
-                        </div>
-                        <div class="detail-info">
-                            <span class="detail-label">Price</span>
-                            <span class="detail-value price-value">$@Booking.TicketPrice.ToString("F2")</span>
-                        </div>
+                }
+
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <i class="fa-solid fa-tag"></i>
+                    </div>
+                    <div class="detail-info">
+                        <span class="detail-label">Ticket Type</span>
+                        <span class="detail-value">@Booking.TicketType</span>
                     </div>
                 </div>
-            }
+
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <i class="fa-solid fa-hashtag"></i>
+                    </div>
+                    <div class="detail-info">
+                        <span class="detail-label">Quantity</span>
+                        <span class="detail-value">x@(Quantity)</span>
+                    </div>
+                </div>
+                <div class="detail-item price-item">
+                    <div class="detail-icon">
+                        <i class="fa-solid fa-dollar-sign"></i>
+                    </div>
+                    <div class="detail-info">
+                        <span class="detail-label">Total</span>
+                        <span class="detail-value price-value">$@( (Booking.TicketPrice * Quantity).ToString("F2") )</span>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- Action Buttons -->
         <AuthorizeView>
             <Authorized Context="authContext">
                 <div class="booking-actions">
-                    @if (CanEditBooking(authContext.User))
-                    {
-                        @if (!IsEditing)
-                        {
-                            <button class="edit-btn" @onclick="OnStartEdit" title="Edit booking">
-                                <i class="fa-solid fa-edit"></i>
-                                <span>Edit</span>
-                            </button>
-                        }
-                    }
-                    
                     <!-- Delete button - Admin can delete any, Users can delete their own -->
                     @if (CanDeleteBooking(authContext.User))
                     {
@@ -98,11 +83,7 @@
 @code {
     [Parameter] public BookingGetDto Booking { get; set; } = new();
     [Parameter] public bool IsAdmin { get; set; } = false;
-    [Parameter] public bool IsEditing { get; set; } = false;
-    [Parameter] public IList<TicketGetDto> AvailableTickets { get; set; } = new List<TicketGetDto>();
-    [Parameter] public EventCallback OnStartEdit { get; set; }
-    [Parameter] public EventCallback<int> OnSaveEdit { get; set; }
-    [Parameter] public EventCallback OnCancelEdit { get; set; }
+    [Parameter] public int Quantity { get; set; } = 1;
     [Parameter] public EventCallback OnDelete { get; set; }
     [Parameter] public int? CurrentUserId { get; set; }
     

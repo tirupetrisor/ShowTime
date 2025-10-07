@@ -13,6 +13,13 @@
                 <span class="price-label">💰 Price:</span>
                 <span class="price-amount">$@Ticket.Price</span>
             </div>
+            @if (IsAdmin)
+            {
+                <div class="ticket-capacity">
+                    <span class="price-label">📦 Capacity:</span>
+                    <span class="price-amount">@Ticket.Capacity</span>
+                </div>
+            }
             @if (Festival != null && !IsAdmin)
             {
                 <div class="ticket-details">
@@ -47,6 +54,21 @@
                     </button>
                 </Authorized>
             </AuthorizeView>
+
+            <AuthorizeView>
+                <Authorized Context="authCtx">
+                    @if (!IsAdmin)
+                    {
+                        <button class="btn btn-primary" @onclick="AddToCart">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                    }
+                </Authorized>
+            </AuthorizeView>
+            @if (!string.IsNullOrEmpty(localMessage))
+            {
+                <div class="text-success" style="font-weight:600;">@localMessage</div>
+            }
         </div>
     </div>
 </div>
@@ -60,4 +82,38 @@
     [Parameter] public EventCallback<TicketUpdateDto> OnSaveEdit { get; set; }
     [Parameter] public EventCallback OnCancelEdit { get; set; }
     [Parameter] public EventCallback OnDelete { get; set; }
+
+    [Inject] private ShowTime.Services.CartService Cart { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    private string localMessage = string.Empty;
+
+    private async Task AddToCart()
+    {
+        try
+        {
+            await Cart.AddAsync(Ticket.Id, 1);
+            Snackbar.Add($"Added {Ticket.Type} - {Festival?.Name ?? Ticket.FestivalName} to cart", Severity.Success);
+            localMessage = "Added to cart";
+            StateHasChanged();
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(2500);
+                localMessage = string.Empty;
+                await InvokeAsync(StateHasChanged);
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Add to cart failed: {ex.Message}");
+            Snackbar.Add(ex.Message, Severity.Error);
+            localMessage = ex.Message;
+            StateHasChanged();
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(2500);
+                localMessage = string.Empty;
+                await InvokeAsync(StateHasChanged);
+            });
+        }
+    }
 } 

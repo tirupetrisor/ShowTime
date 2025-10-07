@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using System.ComponentModel.DataAnnotations
 @using ShowTime.DataAccess.Models
+@using ShowTime.BusinessLogic.Abstractions
 
 <div class="card add-booking-card">
     <div class="card-body">
@@ -23,7 +24,7 @@
                 <div class="row">
                     @if (IsAdmin)
                     {
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-bold">👤 User</label>
                             <select @bind="NewBooking.UserId" class="form-control form-control-modern">
                                 <option value="0">Select User</option>
@@ -34,7 +35,7 @@
                             </select>
                             <ValidationMessage For="@(() => NewBooking.UserId)" class="text-warning fw-bold" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-bold">🎪 Festival</label>
                             <select value="@NewBooking.FestivalId" @onchange="HandleFestivalChanged" class="form-control form-control-modern">
                                 <option value="0">Select Festival</option>
@@ -45,9 +46,9 @@
                             </select>
                             <ValidationMessage For="@(() => NewBooking.FestivalId)" class="text-warning fw-bold" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-bold">🎟️ Ticket</label>
-                            <select @bind="NewBooking.TicketId" class="form-control form-control-modern" disabled="@(NewBooking.FestivalId == 0)">
+                            <select @bind="NewBooking.TicketId" @bind:after="HandleTicketChanged" class="form-control form-control-modern" disabled="@(NewBooking.FestivalId == 0)">
                                 <option value="0">@(NewBooking.FestivalId == 0 ? "Select Festival First" : "Select Ticket")</option>
                                 @foreach (var ticket in AvailableTickets)
                                 {
@@ -60,10 +61,23 @@
                                 <small class="text-warning">No tickets available for this festival.</small>
                             }
                         </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">🔢 Quantity</label>
+                            <InputNumber @bind-Value="NewBooking.Quantity" class="form-control form-control-modern" min="1" max="@MaxSelectableQuantity" @oninput="OnQuantityInput" />
+                            <ValidationMessage For="@(() => NewBooking.Quantity)" class="text-warning fw-bold" />
+                            @if (!string.IsNullOrEmpty(quantityError))
+                            {
+                                <small class="text-warning">@quantityError</small>
+                            }
+                            @if (NewBooking.TicketId > 0 && availableForSelectedTicket >= 0)
+                            {
+                                <small class="text-muted">Available: @availableForSelectedTicket</small>
+                            }
+                        </div>
                     }
                     else
                     {
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-bold">🎪 Festival</label>
                             <select value="@NewBooking.FestivalId" @onchange="HandleFestivalChanged" class="form-control form-control-modern">
                                 <option value="0">Select Festival</option>
@@ -74,9 +88,9 @@
                             </select>
                             <ValidationMessage For="@(() => NewBooking.FestivalId)" class="text-warning fw-bold" />
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-bold">🎟️ Ticket</label>
-                            <select @bind="NewBooking.TicketId" class="form-control form-control-modern" disabled="@(NewBooking.FestivalId == 0)">
+                            <select @bind="NewBooking.TicketId" @bind:after="HandleTicketChanged" class="form-control form-control-modern" disabled="@(NewBooking.FestivalId == 0)">
                                 <option value="0">@(NewBooking.FestivalId == 0 ? "Select Festival First" : "Select Ticket")</option>
                                 @foreach (var ticket in AvailableTickets)
                                 {
@@ -87,6 +101,19 @@
                             @if (NewBooking.FestivalId > 0 && !AvailableTickets.Any())
                             {
                                 <small class="text-warning">No tickets available for this festival.</small>
+                            }
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">🔢 Quantity</label>
+                            <InputNumber @bind-Value="NewBooking.Quantity" class="form-control form-control-modern" min="1" max="@MaxSelectableQuantity" @oninput="OnQuantityInput" />
+                            <ValidationMessage For="@(() => NewBooking.Quantity)" class="text-warning fw-bold" />
+                            @if (!string.IsNullOrEmpty(quantityError))
+                            {
+                                <small class="text-warning">@quantityError</small>
+                            }
+                            @if (NewBooking.TicketId > 0 && availableForSelectedTicket >= 0)
+                            {
+                                <small class="text-muted">Available: @availableForSelectedTicket</small>
                             }
                         </div>
                     }
@@ -109,6 +136,8 @@
 </div>
 
 @code {
+    [Inject] public IBookingService BookingService { get; set; } = default!;
+
     [Parameter] public BookingCreateDto NewBooking { get; set; } = new();
     [Parameter] public IList<FestivalGetDto> AllFestivals { get; set; } = new List<FestivalGetDto>();
     [Parameter] public IList<TicketGetDto> AvailableTickets { get; set; } = new List<TicketGetDto>();
@@ -117,8 +146,16 @@
     [Parameter] public EventCallback<BookingCreateDto> OnAddBooking { get; set; }
     [Parameter] public EventCallback<int> OnFestivalChanged { get; set; }
     
+    private int availableForSelectedTicket = -1;
+    private string quantityError = string.Empty;
+    private int MaxSelectableQuantity => availableForSelectedTicket > 0 ? availableForSelectedTicket : int.MaxValue;
+
     private async Task HandleValidSubmit()
     {
+        if (!ValidateQuantity())
+        {
+            return;
+        }
         await OnAddBooking.InvokeAsync(NewBooking);
         // Form reset is handled by parent component
     }
@@ -129,7 +166,60 @@
         {
             NewBooking.FestivalId = festivalId;
             await OnFestivalChanged.InvokeAsync(festivalId);
+            NewBooking.TicketId = 0;
+            availableForSelectedTicket = -1;
+            quantityError = string.Empty;
         }
+    }
+
+    private async Task HandleTicketChanged()
+    {
+        quantityError = string.Empty;
+        availableForSelectedTicket = -1;
+        if (NewBooking.TicketId > 0)
+        {
+            try
+            {
+                availableForSelectedTicket = await BookingService.GetAvailableTicketsForTypeAsync(NewBooking.TicketId);
+                ClampQuantityToAvailable();
+            }
+            catch
+            {
+                availableForSelectedTicket = -1;
+            }
+        }
+    }
+
+    private void OnQuantityInput(ChangeEventArgs _)
+    {
+        ClampQuantityToAvailable();
+    }
+
+    private void ClampQuantityToAvailable()
+    {
+        if (availableForSelectedTicket >= 0 && NewBooking.Quantity > availableForSelectedTicket)
+        {
+            NewBooking.Quantity = availableForSelectedTicket;
+            quantityError = "Requested quantity exceeds availability.";
+        }
+        else
+        {
+            quantityError = string.Empty;
+        }
+        if (NewBooking.Quantity < 1)
+        {
+            NewBooking.Quantity = 1;
+        }
+    }
+
+    private bool ValidateQuantity()
+    {
+        if (availableForSelectedTicket >= 0 && NewBooking.Quantity > availableForSelectedTicket)
+        {
+            quantityError = "Requested quantity exceeds availability.";
+            return false;
+        }
+        return true;
     }
     
     private bool CanSubmitBooking()

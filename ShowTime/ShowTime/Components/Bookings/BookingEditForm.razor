@@ -1,4 +1,5 @@
 @using ShowTime.BusinessLogic.Dtos
+@using ShowTime.BusinessLogic.Abstractions
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Forms
 @using System.ComponentModel.DataAnnotations
@@ -14,7 +15,7 @@
         </div>
         <div class="mb-3">
             <label class="form-label">🎟️ Ticket Type</label>
-            <select @bind="UpdateBooking.TicketId" class="form-control">
+            <select @bind="UpdateBooking.TicketId" @bind:after="OnTicketChanged" class="form-control">
                 <option value="0">Select New Ticket Type</option>
                 @foreach (var ticket in AvailableTickets)
                 {
@@ -23,8 +24,21 @@
             </select>
             <ValidationMessage For="@(() => UpdateBooking.TicketId)" class="text-warning fw-bold" />
         </div>
+        <div class="mb-3">
+            <label class="form-label"># Quantity</label>
+            <InputNumber @bind-Value="UpdateBooking.Quantity" class="form-control" min="1" max="@MaxSelectableQuantity" @oninput="OnQuantityInput" />
+            <ValidationMessage For="@(() => UpdateBooking.Quantity)" class="text-warning fw-bold" />
+            @if (!string.IsNullOrEmpty(quantityError))
+            {
+                <small class="text-warning">@quantityError</small>
+            }
+            @if (availableForSelectedTicket >= 0)
+            {
+                <small class="text-muted">Available: @availableForSelectedTicket</small>
+            }
+        </div>
         <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-save" disabled="@(UpdateBooking.TicketId == 0)">
+            <button type="submit" class="btn btn-save" disabled="@(UpdateBooking.TicketId == 0 || UpdateBooking.Quantity < 1)">
                 <i class="fas fa-check"></i> Save Changes
             </button>
             <button type="button" class="btn btn-cancel" @onclick="OnCancel">
@@ -37,25 +51,33 @@
 @code {
     [Parameter] public BookingGetDto Booking { get; set; } = new();
     [Parameter] public IList<TicketGetDto> AvailableTickets { get; set; } = new List<TicketGetDto>();
-    [Parameter] public EventCallback<int> OnSave { get; set; }
+    [Parameter] public EventCallback<(int newTicketId, int newQuantity)> OnSave { get; set; }
+    [Parameter] public int InitialQuantity { get; set; } = 1;
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public string FormName { get; set; } = "EditBookingForm";
     
-    private UpdateBookingDto UpdateBooking { get; set; } = new();
+    [Inject] public IBookingService BookingService { get; set; } = default!;
     
-    protected override void OnParametersSet()
+    private UpdateBookingDto UpdateBooking { get; set; } = new();
+    private int availableForSelectedTicket = -1;
+    private string quantityError = string.Empty;
+    private int MaxSelectableQuantity => CalculateMaxSelectableQuantity();
+    
+    protected override async Task OnParametersSetAsync()
     {
         UpdateBooking = new UpdateBookingDto
         {
-            TicketId = Booking.TicketId
+            TicketId = Booking.TicketId,
+            Quantity = InitialQuantity
         };
+        await RefreshAvailability();
     }
     
     private async Task HandleValidSubmit()
     {
-        if (UpdateBooking.TicketId > 0)
+        if (UpdateBooking.TicketId > 0 && UpdateBooking.Quantity >= 1)
         {
-            await OnSave.InvokeAsync(UpdateBooking.TicketId);
+            await OnSave.InvokeAsync((UpdateBooking.TicketId, UpdateBooking.Quantity));
         }
     }
     
@@ -64,5 +86,73 @@
         [Required(ErrorMessage = "Please select a ticket type")]
         [Range(1, int.MaxValue, ErrorMessage = "Please select a valid ticket type")]
         public int TicketId { get; set; }
+
+        [Required(ErrorMessage = "Please enter a quantity")]
+        [Range(1, 1000, ErrorMessage = "Quantity must be at least 1")]
+        public int Quantity { get; set; } = 1;
+    }
+
+    private async Task OnTicketChanged()
+    {
+        quantityError = string.Empty;
+        await RefreshAvailability();
+        ClampQuantityToAvailable();
+    }
+
+    private async Task RefreshAvailability()
+    {
+        availableForSelectedTicket = -1;
+        if (UpdateBooking.TicketId > 0)
+        {
+            try
+            {
+                availableForSelectedTicket = await BookingService.GetAvailableTicketsForTypeAsync(UpdateBooking.TicketId);
+            }
+            catch
+            {
+                availableForSelectedTicket = -1;
+            }
+        }
+    }
+
+    private void OnQuantityInput(ChangeEventArgs _)
+    {
+        ClampQuantityToAvailable();
+    }
+
+    private void ClampQuantityToAvailable()
+    {
+        var maxAllowed = MaxSelectableQuantity;
+        if (UpdateBooking.Quantity > maxAllowed)
+        {
+            UpdateBooking.Quantity = maxAllowed;
+            quantityError = $"Mai poți cumpăra doar {maxAllowed} bilete pentru acest tip.";
+        }
+        else
+        {
+            quantityError = string.Empty;
+        }
+        if (UpdateBooking.Quantity < 1)
+        {
+            UpdateBooking.Quantity = 1;
+        }
+    }
+
+    private int CalculateMaxSelectableQuantity()
+    {
+        if (availableForSelectedTicket < 0)
+        {
+            return int.MaxValue;
+        }
+        if (IsSameTicketType())
+        {
+            return InitialQuantity + availableForSelectedTicket;
+        }
+        return availableForSelectedTicket;
+    }
+
+    private bool IsSameTicketType()
+    {
+        return UpdateBooking.TicketId == Booking.TicketId;
     }
 } 

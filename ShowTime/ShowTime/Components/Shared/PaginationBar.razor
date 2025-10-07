@@ -1,0 +1,60 @@
+@using Microsoft.AspNetCore.Components
+
+<nav aria-label="pagination" class="pagination-bar d-flex align-items-center justify-content-between my-3">
+    <div class="meta text-muted small">Page @CurrentPage of @TotalPages (@TotalItems items)</div>
+    <ul class="pagination mb-0">
+        <li class="page-item @(CurrentPage == 1 ? "disabled" : null)">
+            <button class="page-link" @onclick="(() => GoToPage(1))">« First</button>
+        </li>
+        <li class="page-item @(CurrentPage == 1 ? "disabled" : null)">
+            <button class="page-link" @onclick="(() => GoToPage(CurrentPage - 1))">‹ Prev</button>
+        </li>
+        <li class="page-item disabled"><span class="page-link current">@CurrentPage</span></li>
+        <li class="page-item @(CurrentPage >= TotalPages ? "disabled" : null)">
+            <button class="page-link" @onclick="(() => GoToPage(CurrentPage + 1))">Next ›</button>
+        </li>
+        <li class="page-item @(CurrentPage >= TotalPages ? "disabled" : null)">
+            <button class="page-link" @onclick="(() => GoToPage(TotalPages))">Last »</button>
+        </li>
+    </ul>
+    <div class="page-size d-flex align-items-center gap-2">
+        <label class="small text-muted">Rows:</label>
+        <select class="form-select form-select-sm" style="width:auto" @onchange="OnPageSizeChanged">
+            @foreach (var size in PageSizes)
+            {
+                <option value="@size" selected="@(size == PageSize)">@size</option>
+            }
+        </select>
+    </div>
+    
+</nav>
+
+@code {
+    [Parameter] public int CurrentPage { get; set; } = 1; // 1-based
+    [Parameter] public int PageSize { get; set; } = 10;
+    [Parameter] public int TotalItems { get; set; } = 0;
+    [Parameter] public EventCallback<(int Page, int PageSize)> OnChange { get; set; }
+    [Parameter] public int[] PageSizes { get; set; } = new[] { 5, 10, 20, 50 };
+
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling(TotalItems / (double)PageSize));
+
+    private async Task GoToPage(int page)
+    {
+        page = Math.Max(1, Math.Min(TotalPages, page));
+        if (page == CurrentPage) return;
+        CurrentPage = page;
+        await OnChange.InvokeAsync((CurrentPage, PageSize));
+    }
+
+    private async Task OnPageSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var newSize))
+        {
+            PageSize = newSize;
+            CurrentPage = 1;
+            await OnChange.InvokeAsync((CurrentPage, PageSize));
+        }
+    }
+}
+
+
