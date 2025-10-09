@@ -17,14 +17,16 @@ public class CartService
 
     private readonly ITicketService _ticketService;
     private readonly IBookingService _bookingService;
+    private readonly IFestivalService _festivalService;
     private readonly List<CartItem> _items = new();
 
     public event Action? OnChange;
 
-    public CartService(ITicketService ticketService, IBookingService bookingService)
+    public CartService(ITicketService ticketService, IBookingService bookingService, IFestivalService festivalService)
     {
         _ticketService = ticketService;
         _bookingService = bookingService;
+        _festivalService = festivalService;
     }
 
     public IReadOnlyList<CartItem> GetItems() => _items;
@@ -52,6 +54,13 @@ public class CartService
         if (quantity < 1) quantity = 1;
 
         var ticket = await _ticketService.GetTicketByIdAsync(ticketId) ?? throw new InvalidOperationException("Ticket not found");
+
+        // Prevent adding tickets for festivals that have ended
+        var festival = await _festivalService.GetFestivalByIdAsync(ticket.FestivalId);
+        if (festival != null && festival.EndDate.Date < DateTime.Today)
+        {
+            throw new InvalidOperationException("This event has already ended. You can no longer add tickets to the cart.");
+        }
 
         var available = await _bookingService.GetAvailableTicketsForTypeAsync(ticketId);
         var existing = _items.FirstOrDefault(i => i.TicketId == ticketId);

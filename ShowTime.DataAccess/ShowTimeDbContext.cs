@@ -31,7 +31,7 @@ public class ShowTimeDbContext:DbContext
         new LineupConfiguration().Configure(modelBuilder.Entity<Lineup>());
         new UserConfiguration().Configure(modelBuilder.Entity<User>());
         new BookingConfiguration().Configure(modelBuilder.Entity<Booking>());
-        new TicketConfiguration().Configure(modelBuilder.Entity<Ticket>());  // Noua configurație
+        new TicketConfiguration().Configure(modelBuilder.Entity<Ticket>()); 
         new ReviewConfiguration().Configure(modelBuilder.Entity<Review>());
     }
 }

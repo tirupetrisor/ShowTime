@@ -151,6 +151,15 @@
     border-top: 1px solid #e9ecef;
 }
 
+.ended-message {
+    margin-top: 0.75rem;
+    margin-right: 0.25rem;
+    text-align: right;
+    width: 100%;
+    color: #6b7280;
+    font-weight: 600;
+}
+
 .btn-edit {
     background: linear-gradient(45deg, #06b6d4, #0891b2);
     color: white;

@@ -59,9 +59,16 @@
                 <Authorized Context="authCtx">
                     @if (!IsAdmin)
                     {
-                        <button class="btn btn-primary" @onclick="AddToCart">
-                            <i class="fas fa-cart-plus"></i> Add to Cart
-                        </button>
+                        if (Festival != null && Festival.EndDate.Date < DateTime.Today)
+                        {
+                            <div class="ended-message">This event has ended. Tickets are no longer available.</div>
+                        }
+                        else
+                        {
+                            <button class="btn btn-primary" @onclick="AddToCart">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                        }
                     }
                 </Authorized>
             </AuthorizeView>

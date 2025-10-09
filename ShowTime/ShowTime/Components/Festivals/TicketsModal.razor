@@ -139,9 +139,16 @@
                                                     <AuthorizeView Roles="Administrator">
                                                         <NotAuthorized Context="nonAdminCtx">
                                                             <div class="ticket-actions">
-                                                                <button type="button" class="add-btn" @onclick="() => AddToCart(ticket.Id)">
-                                                                    <i class="fa-solid fa-cart-plus"></i> Add to Cart
-                                                                </button>
+                                                                @if (Festival != null && Festival.EndDate.Date < DateTime.Today)
+                                                                {
+                                                                    <span class="add-msg">This event has ended. Tickets are no longer available.</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <button type="button" class="add-btn" @onclick="() => AddToCart(ticket.Id)">
+                                                                        <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                                                                    </button>
+                                                                }
                                                                 @if (addMessages.TryGetValue(ticket.Id, out var msg) && !string.IsNullOrEmpty(msg))
                                                                 {
                                                                     <span class="add-msg">@msg</span>

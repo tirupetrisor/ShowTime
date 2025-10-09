@@ -33,10 +33,14 @@
             </NavLink>
 
 
-            <NavLink class="nav-link" href="/bookings">
-                <span class="nav-icon">🎫</span>
-                <span class="nav-text">Bookings</span>
-            </NavLink>
+            <AuthorizeView>
+                <Authorized>
+                    <NavLink class="nav-link" href="/bookings">
+                        <span class="nav-icon">🎫</span>
+                        <span class="nav-text">Bookings</span>
+                    </NavLink>
+                </Authorized>
+            </AuthorizeView>
 
             <AuthorizeView>
                 <Authorized Context="authCtx">

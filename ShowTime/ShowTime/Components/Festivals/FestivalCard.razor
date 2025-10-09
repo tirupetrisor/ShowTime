@@ -6,6 +6,9 @@
 
 <div class="col-12 mb-4">
     <div class="festival-card">
+        <div class="festival-status-badge @(Festival.EndDate.Date < DateTime.Today ? "past" : "upcoming")">
+            @(Festival.EndDate.Date < DateTime.Today ? "PAST" : "UPCOMING")
+        </div>
         <div class="row g-0">
             <!-- Festival Image -->
             <div class="col-md-3">

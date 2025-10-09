@@ -171,6 +171,12 @@ public class BookingService : IBookingService
                 throw new KeyNotFoundException($"Festival with ID {bookingCreateDto.FestivalId} not found.");
             }
 
+            // Prevent bookings for past festivals
+            if (festival.EndDate.Date < DateTime.Today)
+            {
+                throw new InvalidOperationException("This event has already ended. Tickets can no longer be purchased.");
+            }
+
             // Verifică dacă utilizatorul există
             var user = await _userRepository.GetByIdAsync(bookingCreateDto.UserId);
             if (user == null)
